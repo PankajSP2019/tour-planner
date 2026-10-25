@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tour Planner</title>
+<meta name="theme-color" content="#0D1F22">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+:root{
+  --bg:#0D1F22; --bg2:#112729; --panel:#16302F; --panel2:#1C3A38;
+  --line:rgba(226,238,232,.12); --line2:rgba(226,238,232,.2);
+  --text:#E2EEE8; --dim:rgba(226,238,232,.66); --faint:rgba(226,238,232,.42);
+  --apricot:#F2A65A; --apricot-ink:#3B2208; --sea:#6CC4B0; --sky:#86AEDC; --rose:#E27D8C; --lime:#B7CF6E;
+  --r-lg:16px; --r:11px; --r-sm:8px;
+  --display:'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --body:'Figtree', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --bs-body-bg:var(--bg); --bs-body-color:var(--text); --bs-border-color:var(--line);
+}
+:root{ box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+*{ -webkit-tap-highlight-color:transparent; }
+html{ scroll-padding-top:calc(env(safe-area-inset-top,0px) + 120px); }
+body{ background:var(--bg); color:var(--text); font-family:var(--body); font-size:15.5px; line-height:1.55; min-height:100vh; }
+h1,h2,h3,h4,h5,.display{ font-family:var(--display); letter-spacing:-.01em; }
+a{ color:var(--sea); }
+:focus-visible{ outline:2px solid var(--apricot)!important; outline-offset:2px; }
+.dim{ color:var(--dim); } .faint{ color:var(--faint); }
+.hidden{ display:none!important; }
+
+/* ---------- buttons & inputs ---------- */
+.btn{ border-radius:var(--r-sm); font-weight:600; }
+.btn-accent{ background:var(--apricot); color:var(--apricot-ink); border:0; }
+.btn-accent:hover,.btn-accent:focus{ background:#F7B874; color:var(--apricot-ink); }
+.btn-ghost{ background:transparent; color:var(--text); border:1px solid var(--line2); }
+.btn-ghost:hover{ background:var(--panel2); color:var(--text); border-color:var(--line2); }
+.btn-icon{ width:34px; height:34px; padding:0; display:inline-flex; align-items:center; justify-content:center; background:transparent; border:1px solid var(--line); color:var(--dim); border-radius:var(--r-sm); }
+.btn-icon:hover{ color:var(--text); background:var(--panel2); }
+.btn-icon.danger:hover{ color:var(--rose); border-color:var(--rose); }
+.form-control,.form-select{ background-color:var(--bg2); border-color:var(--line2); color:var(--text); border-radius:var(--r-sm); }
+.form-control:focus,.form-select:focus{ background-color:var(--bg2); color:var(--text); border-color:var(--apricot); box-shadow:0 0 0 .2rem rgba(242,166,90,.2); }
+.form-control::placeholder{ color:var(--faint); }
+.form-label{ font-size:.86rem; color:var(--dim); margin-bottom:.3rem; font-weight:600; }
+.form-check-input{ background-color:var(--bg2); border-color:var(--line2); }
+.form-check-input:checked{ background-color:var(--sea); border-color:var(--sea); }
+
+/* ---------- auth ---------- */
+#authView{ min-height:100vh; display:grid; place-items:center; padding:24px 16px; }
+.auth-card{ width:100%; max-width:410px; background:var(--panel); border:1px solid var(--line); border-radius:var(--r-lg); padding:30px 26px; }
+.brand{ font-family:var(--display); font-weight:800; font-size:1.25rem; display:flex; align-items:center; gap:.55rem; }
+.brand-mark{ width:34px; height:34px; border-radius:9px; background:var(--apricot); color:var(--apricot-ink); display:grid; place-items:center; font-size:1.05rem; }
+.auth-card h1{ font-size:1.8rem; font-weight:800; margin:22px 0 4px; }
+
+/* ---------- top bar ---------- */
+.topbar{ position:sticky; top:0; z-index:1030; background:rgba(13,31,34,.94); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); padding-top:env(safe-area-inset-top,0px); }
+.topbar-inner{ display:flex; align-items:center; gap:.7rem; padding:.7rem 0; }
+.sync-pill{ font-size:.78rem; font-weight:600; padding:.25rem .65rem; border-radius:999px; border:1px solid var(--line2); color:var(--dim); white-space:nowrap; display:inline-flex; align-items:center; gap:.35rem; }
+.sync-pill::before{ content:""; width:7px; height:7px; border-radius:50%; background:var(--faint); }
+.sync-pill.ok::before{ background:var(--sea); } .sync-pill.busy::before{ background:var(--apricot); }
+.sync-pill.err::before{ background:var(--rose); } .sync-pill.off::before{ background:var(--sky); }
+.user-chip{ font-size:.82rem; color:var(--dim); max-width:190px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* ---------- dashboard / tour tags ---------- */
+.home-head{ padding:34px 0 20px; }
+.home-head h1{ font-size:clamp(2rem,5vw,2.9rem); font-weight:800; margin:0; line-height:1.05; }
+.tour-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:16px; padding-bottom:50px; }
+.tour-tag{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:var(--r-lg); padding:20px 18px 16px 30px; cursor:pointer; overflow:hidden; transition:border-color .15s; }
+.tour-tag:hover{ border-color:var(--line2); }
+.tour-tag::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:10px; background:var(--tag,var(--apricot)); }
+.tour-tag::after{ content:""; position:absolute; left:15px; top:20px; width:9px; height:9px; border-radius:50%; background:var(--bg); border:1px solid var(--line2); }
+.tour-tag .emoji{ font-size:1.7rem; line-height:1; }
+.tour-tag h3{ font-size:1.3rem; font-weight:700; margin:.55rem 0 .15rem; word-break:break-word; }
+.tour-tag .meta{ font-size:.86rem; color:var(--dim); }
+.tour-tag .foot{ display:flex; align-items:center; justify-content:space-between; margin-top:14px; padding-top:12px; border-top:1px dashed var(--line2); }
+.status{ font-size:.75rem; font-weight:700; padding:.18rem .55rem; border-radius:999px; }
+.status.up{ background:rgba(134,174,220,.16); color:var(--sky); }
+.status.on{ background:rgba(108,196,176,.17); color:var(--sea); }
+.status.done{ background:rgba(226,238,232,.08); color:var(--dim); }
+.status.shared{ background:rgba(242,166,90,.15); color:var(--apricot); }
+.new-tag{ border:1.5px dashed var(--line2); border-radius:var(--r-lg); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.4rem; min-height:170px; color:var(--dim); background:transparent; font-weight:600; }
+.new-tag:hover{ color:var(--apricot); border-color:var(--apricot); }
+.new-tag i{ font-size:1.6rem; }
+
+/* ---------- tour nav ---------- */
+.tour-title{ font-family:var(--display); font-weight:700; font-size:1.08rem; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+.tabbar{ border-top:1px solid var(--line); }
+.tabbar .nav{ flex-wrap:nowrap; gap:.2rem; padding:.45rem 0; }
+.tabbar .nav-link{ color:var(--dim); font-weight:600; font-size:.92rem; border-radius:var(--r-sm); padding:.4rem .75rem; white-space:nowrap; }
+.tabbar .nav-link:hover{ color:var(--text); background:var(--panel); }
+.tabbar .nav-link.active{ color:var(--apricot-ink); background:var(--apricot); }
+.dropdown-menu{ background:var(--panel); border:1px solid var(--line2); border-radius:var(--r); padding:.35rem; }
+.dropdown-item{ color:var(--text); border-radius:6px; font-weight:500; padding:.45rem .7rem; }
+.dropdown-item:hover,.dropdown-item.active{ background:var(--panel2); color:var(--apricot); }
+.offcanvas{ background:var(--bg2); color:var(--text); }
+.menu-list button{ display:flex; width:100%; align-items:center; gap:.75rem; background:transparent; border:0; color:var(--text); padding:.75rem .9rem; border-radius:var(--r-sm); font-weight:600; text-align:left; }
+.menu-list button.active{ background:var(--apricot); color:var(--apricot-ink); }
+.menu-list button i{ width:20px; }
+
+/* ---------- sections ---------- */
+main.tour-main{ padding:22px 0 70px; }
+.sec-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+.sec-head h2{ font-size:1.65rem; font-weight:800; margin:0; }
+.sec-head p{ margin:.15rem 0 0; color:var(--dim); font-size:.93rem; }
+.panel{ background:var(--panel); border:1px solid var(--line); border-radius:var(--r-lg); padding:18px; }
+.panel + .panel{ margin-top:14px; }
+.panel h3{ font-size:1.12rem; font-weight:700; margin:0 0 .7rem; }
+.empty{ text-align:center; color:var(--dim); padding:34px 16px; border:1.5px dashed var(--line2); border-radius:var(--r-lg); }
+.empty i{ font-size:1.7rem; display:block; margin-bottom:.4rem; color:var(--faint); }
+
+/* overview hero */
+.hero{ background:var(--panel); border:1px solid var(--line); border-radius:var(--r-lg); padding:26px 22px; position:relative; overflow:hidden; }
+.hero::before{ content:""; position:absolute; left:0; right:0; top:0; height:6px; background:var(--tag,var(--apricot)); }
+.hero .emoji{ font-size:2.3rem; }
+.hero h1{ font-size:clamp(2rem,6vw,3.2rem); font-weight:800; line-height:1.02; margin:.3rem 0 .3rem; word-break:break-word; }
+.countdown{ font-family:var(--display); font-weight:800; font-size:1.2rem; color:var(--apricot); }
+.stat-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; margin-top:14px; }
+.stat{ background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:14px; }
+.stat .v{ font-family:var(--display); font-weight:700; font-size:1.3rem; }
+.stat .l{ font-size:.82rem; color:var(--dim); }
+.bar{ height:7px; background:var(--bg2); border-radius:9px; overflow:hidden; margin-top:6px; }
+.bar > span{ display:block; height:100%; background:var(--sea); border-radius:9px; }
+.bar.warn > span{ background:var(--apricot); } .bar.over > span{ background:var(--rose); }
+
+/* day chips */
+.day-chips{ position:sticky; top:var(--chips-top,112px); z-index:5; background:var(--bg); padding:.5rem 0; margin-bottom:10px; display:flex; gap:.45rem; overflow-x:auto; scrollbar-width:thin; }
+.day-chip{ flex:0 0 auto; background:var(--panel); border:1px solid var(--line); color:var(--dim); border-radius:var(--r); padding:.4rem .75rem; text-align:left; line-height:1.2; }
+.day-chip b{ display:block; color:var(--text); font-size:.9rem; }
+.day-chip small{ font-size:.74rem; }
+.day-chip.active{ background:var(--apricot); border-color:var(--apricot); color:var(--apricot-ink); }
+.day-chip.active b{ color:var(--apricot-ink); }
+.day-chip.today{ border-color:var(--sea); }
+.step{ display:grid; grid-template-columns:130px 1fr auto; gap:12px; padding:11px 0; border-bottom:1px solid var(--line); align-items:start; }
+.step:last-child{ border-bottom:0; }
+.step .t{ font-weight:700; color:var(--apricot); font-size:.9rem; }
+.step .acts{ display:flex; gap:4px; }
+@media (max-width:576px){ .step{ grid-template-columns:1fr auto; } .step .t{ grid-column:1 / -1; } }
+.tz{ font-size:.7rem; font-weight:700; padding:.1rem .45rem; border-radius:6px; margin-left:.35rem; vertical-align:middle; }
+.tz.home{ background:rgba(134,174,220,.18); color:var(--sky); }
+.tz.dest{ background:rgba(183,207,110,.17); color:var(--lime); }
+
+/* tables */
+.tbl-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:var(--r); }
+table.t{ width:100%; border-collapse:collapse; font-size:.92rem; color:var(--text); }
+table.t th{ text-align:left; font-weight:700; color:var(--dim); background:var(--bg2); padding:.6rem .7rem; font-size:.82rem; white-space:nowrap; border-bottom:1px solid var(--line2); }
+table.t td{ padding:.6rem .7rem; border-bottom:1px solid var(--line); vertical-align:top; background:var(--panel); }
+table.t tr:last-child td{ border-bottom:0; }
+table.t td.num,table.t th.num{ text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+table.t tfoot td{ background:var(--panel2); font-weight:700; }
+.row-acts{ display:flex; gap:4px; justify-content:flex-end; }
+
+/* badges */
+.pill{ display:inline-block; font-size:.75rem; font-weight:700; padding:.15rem .5rem; border-radius:999px; background:var(--panel2); color:var(--dim); }
+.rv-good{ background:rgba(108,196,176,.18); color:var(--sea); }
+.rv-moderate{ background:rgba(134,174,220,.18); color:var(--sky); }
+.rv-bad{ background:rgba(242,166,90,.18); color:var(--apricot); }
+.rv-verybad{ background:rgba(226,125,140,.2); color:var(--rose); }
+
+/* checklists */
+.check-item{ display:flex; align-items:center; gap:.7rem; padding:.55rem 0; border-bottom:1px solid var(--line); }
+.check-item:last-child{ border-bottom:0; }
+.check-item .txt{ flex:1; min-width:0; word-break:break-word; }
+.check-item.done .txt{ color:var(--faint); text-decoration:line-through; }
+.check-item .form-check-input{ width:1.25em; height:1.25em; margin:0; flex:0 0 auto; }
+
+/* contacts & notes */
+.card-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; }
+.c-card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--r-lg); padding:16px; display:flex; flex-direction:column; }
+.c-card h4{ font-size:1.1rem; font-weight:700; margin:0; }
+.c-card .body{ color:var(--dim); font-size:.92rem; white-space:pre-wrap; word-break:break-word; flex:1; margin-top:.4rem; }
+.c-card .body.clamp{ display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
+.c-card .acts{ display:flex; gap:6px; flex-wrap:wrap; margin-top:12px; }
+.btn-wa{ background:#1F8F5A; color:#fff; border:0; } .btn-wa:hover{ background:#23A366; color:#fff; }
+
+/* log */
+.log-row{ display:flex; gap:12px; padding:.6rem 0; border-bottom:1px solid var(--line); font-size:.92rem; }
+.log-row .who{ color:var(--apricot); font-weight:600; }
+.log-row time{ color:var(--faint); font-size:.8rem; white-space:nowrap; min-width:118px; }
+
+/* modal */
+.modal-content{ background:var(--panel); border:1px solid var(--line2); border-radius:var(--r-lg); color:var(--text); }
+.modal-header,.modal-footer{ border-color:var(--line); }
+.modal-title{ font-family:var(--display); font-weight:700; }
+.time12{ display:flex; gap:6px; }
+.time12 select{ flex:1; min-width:0; }
+.swatches{ display:flex; gap:8px; flex-wrap:wrap; }
+.swatches label{ width:30px; height:30px; border-radius:50%; cursor:pointer; border:2px solid transparent; }
+.swatches input{ display:none; }
+.swatches input:checked + label{ border-color:var(--text); box-shadow:0 0 0 2px var(--bg) inset; }
+
+.toast-box{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(18px + env(safe-area-inset-bottom,0px)); z-index:2000; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none; }
+.toast-msg{ background:var(--text); color:var(--bg); font-weight:600; padding:.55rem 1rem; border-radius:999px; font-size:.9rem; box-shadow:0 6px 20px rgba(0,0,0,.35); }
+.loading{ min-height:60vh; display:grid; place-items:center; color:var(--dim); }
+textarea.day-note{ min-height:90px; }
+@media (prefers-reduced-motion:reduce){ *{ transition:none!important; scroll-behavior:auto!important; } }
+</style>
+</head>
+<body>
+
+<div id="bootView" class="loading"><div><div class="spinner-border text-warning mb-2" role="status"></div><div>Loading…</div></div></div>
+
+<!-- ================= AUTH ================= -->
+<div id="authView" class="hidden">
+  <div class="auth-card">
+    <div class="brand"><span class="brand-mark"><i class="bi bi-compass"></i></span>Tour Planner</div>
+    <h1 id="authTitle">Sign in</h1>
+    <p class="dim mb-4" id="authSub">Your tours sync to every device you sign in on.</p>
+    <form id="authForm" novalidate>
+      <div class="mb-3 hidden" id="nameWrap">
+        <label class="form-label" for="authName">Your name</label>
+        <input class="form-control" id="authName" autocomplete="name" placeholder="Shown in the change log">
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="authEmail">Email</label>
+        <input class="form-control" id="authEmail" type="email" autocomplete="email" required>
+      </div>
+      <div class="mb-3" id="passWrap">
+        <label class="form-label" for="authPass">Password</label>
+        <input class="form-control" id="authPass" type="password" autocomplete="current-password" minlength="6" required>
+      </div>
+      <div class="form-check mb-3" id="keepWrap">
+        <input class="form-check-input" type="checkbox" id="authKeep">
+        <label class="form-check-label dim" for="authKeep">Keep me signed in after closing the browser</label>
+      </div>
+      <div class="text-danger small mb-2" id="authErr" role="alert"></div>
+      <button class="btn btn-accent w-100 py-2" id="authBtn" type="submit">Sign in</button>
+    </form>
+    <div class="d-flex justify-content-between mt-3 small">
+      <a href="#" id="authSwitch">Create an account</a>
+      <a href="#" id="authForgot">Forgot password?</a>
+    </div>
+  </div>
+</div>
+
+<!-- ================= HOME (tour list) ================= -->
+<div id="homeView" class="hidden">
+  <header class="topbar"><div class="container"><div class="topbar-inner">
+    <div class="brand me-auto"><span class="brand-mark"><i class="bi bi-compass"></i></span><span>Tour Planner</span></div>
+    <span class="user-chip d-none d-sm-inline" id="homeUser"></span>
+    <button class="btn btn-ghost btn-sm" data-action="signout"><i class="bi bi-box-arrow-right"></i><span class="d-none d-sm-inline ms-1">Sign out</span></button>
+  </div></div></header>
+  <div class="container">
+    <div class="home-head d-flex justify-content-between align-items-end flex-wrap gap-3">
+      <div>
+        <h1>Your tours</h1>
+        <p class="dim mb-0" id="homeCount">Plan each trip in its own space.</p>
+      </div>
+      <button class="btn btn-accent" data-action="new-tour"><i class="bi bi-plus-lg me-1"></i>New tour</button>
+    </div>
+    <div class="tour-grid" id="tourGrid"></div>
+  </div>
+</div>
+
+<!-- ================= TOUR ================= -->
+<div id="tourView" class="hidden">
+  <header class="topbar" id="tourTop"><div class="container">
+    <div class="topbar-inner">
+      <button class="btn-icon" data-action="go-home" title="All tours" aria-label="All tours"><i class="bi bi-arrow-left"></i></button>
+      <h2 class="tour-title me-auto" id="tourTitle">Tour</h2>
+      <span class="sync-pill" id="syncPill">Connecting</span>
+      <button class="btn-icon d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#menuCanvas" aria-label="Open menu"><i class="bi bi-list"></i></button>
+    </div>
+    <nav class="tabbar d-none d-lg-block" aria-label="Tour sections">
+      <ul class="nav" id="deskNav"></ul>
+    </nav>
+  </div></header>
+
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="menuCanvas" aria-labelledby="menuTitle">
+    <div class="offcanvas-header border-bottom" style="border-color:var(--line)!important">
+      <h5 class="offcanvas-title display" id="menuTitle">Sections</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body menu-list" id="mobileNav"></div>
+  </div>
+
+  <main class="tour-main"><div class="container">
+    <section data-tab="overview"></section>
+    <section data-tab="plan"></section>
+    <section data-tab="activity"></section>
+    <section data-tab="expenses"></section>
+    <section data-tab="budget"></section>
+    <section data-tab="places"></section>
+    <section data-tab="food"></section>
+    <section data-tab="requests"></section>
+    <section data-tab="checklists"></section>
+    <section data-tab="contacts"></section>
+    <section data-tab="notes"></section>
+    <section data-tab="currency"></section>
+    <section data-tab="report"></section>
+    <section data-tab="log"></section>
+    <section data-tab="settings"></section>
+  </div></main>
+</div>
+
+<!-- generic form modal -->
+<div class="modal fade" id="formModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <form class="modal-content" id="formModalForm" novalidate>
+      <div class="modal-header"><h5 class="modal-title" id="formModalTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+      <div class="modal-body" id="formModalBody"></div>
+      <div class="modal-footer">
+        <span class="text-danger small me-auto" id="formModalErr"></span>
+        <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-accent" id="formModalOk">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- info / confirm modal -->
+<div class="modal fade" id="infoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="infoTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+      <div class="modal-body" id="infoBody"></div>
+      <div class="modal-footer" id="infoFoot"></div>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="importFile" accept="application/json,.json" class="hidden">
+<input type="time" id="nativeTime" class="hidden" aria-hidden="true" tabindex="-1">
+<div class="toast-box" id="toastBox" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, setPersistence, browserSessionPersistence, browserLocalPersistence, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, where, serverTimestamp, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* =====================================================================
+   1) PASTE YOUR FIREBASE CONFIG HERE  (Firebase console > Project settings > Your apps)
+   ===================================================================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyCjQXHXLqFs8muyDcLo3jhIYmYEITDL8tg",
+  authDomain: "tour-plan-generic.firebaseapp.com",
+  projectId: "tour-plan-generic",
+  storageBucket: "tour-plan-generic.firebasestorage.app",
+  messagingSenderId: "127412776834",
+  appId: "1:127412776834:web:a4b38ff3f77b70d877a99b"
+};
+
+/* ============================ helpers ============================ */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const nid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const CLIENT = nid();
+const num = v => { const n = parseFloat(String(v ?? '').replace(/,/g, '')); return isFinite(n) ? n : 0; };
+const round = (n, d = 4) => Math.round(n * 10 ** d) / 10 ** d;
+const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
+const byId = (arr, id) => arr.find(x => x.id === id);
+const tsMs = t => t?.toMillis ? t.toMillis() : (typeof t === 'number' ? t : 0);
+function isoLocal(d = new Date()) { const z = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`; }
+function parseISO(s) { if (!s) return null; const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
+function addDaysISO(s, n) { const d = parseISO(s); d.setDate(d.getDate() + n); return isoLocal(d); }
+function daysBetween(a, b) { return Math.round((parseISO(b) - parseISO(a)) / 86400000); }
+function fmtDate(s, o) { const d = parseISO(s); return d ? d.toLocaleDateString('en-GB', o || { weekday: 'short', day: 'numeric', month: 'short' }) : ''; }
+const fmtDateLong = s => fmtDate(s, { day: 'numeric', month: 'short', year: 'numeric' });
+function to12(t) { if (!t) return ''; const [h, m] = t.split(':').map(Number); return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; }
+const fmtN = (n, d = 2) => Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: d });
+const money = (n, cur) => `${cur || ''} ${fmtN(n)}`.trim();
+const slug = s => String(s || 'tour').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'tour';
+function toast(msg) { const d = document.createElement('div'); d.className = 'toast-msg'; d.textContent = msg; $('#toastBox').append(d); setTimeout(() => d.remove(), 2800); }
+
+const SWATCHES = ['#F2A65A', '#6CC4B0', '#86AEDC', '#E27D8C', '#B7CF6E', '#C79BE0', '#E8C95A'];
+const CATS = ['Transport', 'Stay', 'Food', 'Tickets & entry', 'Tours & guides', 'Shopping', 'SIM & internet', 'Fees & permits', 'Tips', 'Other'];
+const REVIEWS = ['Good', 'Moderate', 'Bad', 'Very bad'];
+const RATINGS = ['Loved it', 'Good', 'Okay', 'Skip it'];
+const TABS = [
+  ['overview', 'Overview', 'bi-house'], ['plan', 'Day plan', 'bi-calendar3'], ['activity', 'My activity', 'bi-journal-check'],
+  ['expenses', 'Expenses', 'bi-wallet2'], ['budget', 'Budget', 'bi-pie-chart'],
+  ['places', 'Places', 'bi-geo-alt'], ['food', 'Food', 'bi-egg-fried'], ['requests', 'Requests', 'bi-bag-heart'],
+  ['checklists', 'Checklists', 'bi-check2-square'], ['contacts', 'Important notes', 'bi-telephone'], ['notes', 'Notes', 'bi-sticky'],
+  ['currency', 'Currency', 'bi-currency-exchange'], ['report', 'PDF report', 'bi-file-earmark-pdf'], ['log', 'Change log', 'bi-clock-history'],
+  ['settings', 'Settings', 'bi-gear']
+];
+
+/* ============================ firebase ============================ */
+const CONFIG_OK = !String(firebaseConfig.apiKey).startsWith('PASTE');
+let auth, db;
+if (CONFIG_OK) {
+  const app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+}
+
+/* ============================ app state ============================ */
+let CU = null;              // signed-in user
+let TOURS = [], toursLoaded = false, unsubTours = null;
+let T = null, S = null;     // current tour meta + tour data
+let tourRef = null, stateRef = null, unsubTour = null, unsubState = null;
+let pushTimer = null, pendingLocal = false, curTab = 'overview';
+let expFilter = 'all', placeFilter = 'all', foodFilter = 'all', noteQ = '', logQ = 'all';
+let RATES = null; try { RATES = JSON.parse(localStorage.getItem('tp:rates') || 'null'); } catch { }
+const CV = { amt: 1000, from: null, to: null };
+
+const myEmail = () => (CU?.email || '').toLowerCase();
+const myName = () => auth?.currentUser?.displayName || CU?.email || 'Someone';
+const isOwner = () => T && CU && T.ownerUid === CU.uid;
+
+/* ============================ rates & money ============================ */
+async function fetchRates(force) {
+  if (!force && RATES && Date.now() - RATES.fetched < 6 * 3600e3) return RATES;
+  const r = await fetch('https://open.er-api.com/v6/latest/USD');
+  const j = await r.json();
+  if (j.result !== 'success') throw new Error('Rate service unavailable');
+  RATES = { rates: j.rates, time: j.time_last_update_utc, fetched: Date.now() };
+  localStorage.setItem('tp:rates', JSON.stringify(RATES));
+  return RATES;
+}
+function crossRate(from, to) {
+  if (!from || !to) return null;
+  if (from === to) return 1;
+  if (T?.rate) { if (from === T.destCur && to === T.homeCur) return num(T.rate); if (from === T.homeCur && to === T.destCur) return 1 / num(T.rate); }
+  const r = RATES?.rates; if (!r || !r[from] || !r[to]) return null;
+  return r[to] / r[from];
+}
+function liveRate(from, to) { const r = RATES?.rates; if (!r || !r[from] || !r[to]) return null; return r[to] / r[from]; }
+function toHome(a, cur) { a = num(a); if (!cur || cur === T.homeCur) return a; const x = crossRate(cur, T.homeCur); return x == null ? a : a * x; }
+function homeToDest(a) { const x = crossRate(T.homeCur, T.destCur); return x == null ? null : a * x; }
+const curOptions = () => [...new Set([T.destCur, T.homeCur, 'USD'].filter(Boolean))];
+const dualMoney = h => { const d = homeToDest(h); return `${money(h, T.homeCur)}${d != null && T.destCur !== T.homeCur ? `<div class="faint small">${money(d, T.destCur)}</div>` : ''}`; };
+
+/* ============================ state model ============================ */
+function buildDays(s, e) {
+  if (!s) return [{ id: nid(), date: '', title: '', steps: [], note: '' }];
+  const n = e && e >= s ? Math.min(daysBetween(s, e) + 1, 120) : 1;
+  return range(0, n - 1).map(i => ({ id: nid(), date: addDaysISO(s, i), title: '', steps: [], note: '' }));
+}
+function defaultLists() {
+  const mk = (name, items, priced = false) => ({ id: nid(), name, priced, items: items.map(t => ({ id: nid(), text: t, done: false, price: '', cur: '' })) });
+  return [
+    mk('Pre-trip shopping', [], true),
+    mk('Packing', ['Passport / national ID', 'Tickets and booking printouts', 'Phone charger and power bank', 'Personal medicines', 'Cash and cards', 'Toiletries', 'Weather-right clothes']),
+    mk('Documents', ['Passport and visa copies', 'Hotel booking confirmations', 'Travel insurance', 'Emergency contact list']),
+    mk('Important to-dos', [])
+  ];
+}
+function freshState(meta) {
+  return { days: buildDays(meta?.startDate, meta?.endDate), activity: {}, places: [], food: [], budget: [], expenses: [], requests: [], lists: defaultLists(), contacts: [], notes: [], log: [] };
+}
+function normalize(s) {
+  const f = freshState(T); if (!s) return f;
+  const o = { ...f, ...s };
+  ['days', 'places', 'food', 'budget', 'expenses', 'requests', 'lists', 'contacts', 'notes', 'log'].forEach(k => { if (!Array.isArray(o[k])) o[k] = f[k]; });
+  if (!o.activity || typeof o.activity !== 'object') o.activity = {};
+  o.days.forEach(d => { d.steps = d.steps || []; });
+  o.lists.forEach(l => { l.items = l.items || []; });
+  Object.values(o.activity).forEach(a => { a.entries = a.entries || []; });
+  return o;
+}
+// keep the plan, drop what happened on the trip
+function templateFrom(src, meta) {
+  const clone = x => JSON.parse(JSON.stringify(x));
+  const cp = s => ({ ...s, id: nid() });
+  let days;
+  if (meta.startDate) {
+    days = buildDays(meta.startDate, meta.endDate);
+    days.forEach((d, i) => { const o = src.days[i]; if (o) { d.title = o.title || ''; d.note = o.note || ''; d.steps = (o.steps || []).map(cp); } });
+    src.days.slice(days.length).forEach(o => days.push({ id: nid(), date: '', title: o.title || '', note: o.note || '', steps: (o.steps || []).map(cp) }));
+  } else days = src.days.map(o => ({ id: nid(), date: '', title: o.title || '', note: o.note || '', steps: (o.steps || []).map(cp) }));
+  return {
+    days, activity: {}, places: src.places.map(p => ({ ...p, id: nid(), status: 'planned', date: '', rating: '' })), food: [], expenses: [],
+    budget: clone(src.budget).map(cp), requests: [],
+    lists: clone(src.lists).map(l => ({ ...l, id: nid(), items: l.items.map(i => ({ ...i, id: nid(), done: false })) })),
+    contacts: clone(src.contacts).map(cp), notes: clone(src.notes).map(cp), log: []
+  };
+}
+
+/* ============================ sync ============================ */
+function setSync(cls, text) { const p = $('#syncPill'); p.className = 'sync-pill ' + cls; p.textContent = text; }
+function addLog(what) { S.log.unshift({ t: Date.now(), who: myName(), what }); if (S.log.length > 300) S.log.length = 300; }
+function schedulePush() { clearTimeout(pushTimer); pushTimer = setTimeout(pushNow, 900); setSync('busy', 'Saving…'); }
+function commit(what, opts = {}) { if (what) addLog(what); schedulePush(); if (opts.render !== false) renderActive(); }
+async function pushNow() {
+  clearTimeout(pushTimer); pushTimer = null;
+  if (!S || !stateRef) return;
+  const ref = stateRef, tRef = tourRef;
+  pendingLocal = true;
+  setSync(navigator.onLine ? 'busy' : 'off', navigator.onLine ? 'Saving…' : 'Offline, saved on device');
+  try {
+    await setDoc(ref, { state: JSON.parse(JSON.stringify(S)), updatedAt: serverTimestamp(), updatedBy: myName(), clientId: CLIENT });
+    pendingLocal = false;
+    if (ref === stateRef) setSync('ok', 'Synced');
+    updateDoc(tRef, { updatedAt: serverTimestamp() }).catch(() => { });
+  } catch (e) {
+    pendingLocal = false; console.error(e);
+    setSync('err', 'Sync failed'); toast('Could not save to the cloud (' + (e.code || e.message) + ')');
+  }
+}
+function onState(snap) {
+  const md = snap.metadata;
+  if (!snap.exists()) {
+    if (md.fromCache) return;            // wait for the server before deciding it's new
+    if (!S) { S = normalize(null); addLog('Set up tour data'); pushNow(); renderActive(); }
+    return;
+  }
+  const d = snap.data();
+  if (!S) { S = normalize(d.state); renderActive(); }
+  else if (!md.hasPendingWrites && d.clientId !== CLIENT && !pendingLocal && !pushTimer) {
+    S = normalize(d.state); renderActive(true);
+    if (d.updatedBy && d.updatedBy !== myName()) toast(`Updated by ${d.updatedBy}`);
+  }
+  if (!pushTimer && !pendingLocal) {
+    if (!navigator.onLine) setSync('off', 'Offline');
+    else if (md.hasPendingWrites) setSync('busy', 'Saving…');
+    else if (md.fromCache) setSync('off', 'Offline copy');
+    else setSync('ok', 'Synced');
+  }
+}
+const flush = () => { if (pushTimer) pushNow(); };
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
+window.addEventListener('pagehide', flush);
+window.addEventListener('online', () => { if (T && !pushTimer) setSync('ok', 'Synced'); });
+window.addEventListener('offline', () => { if (T) setSync('off', 'Offline'); });
+
+/* ============================ views & routing ============================ */
+function showView(v) { ['bootView', 'authView', 'homeView', 'tourView'].forEach(id => $('#' + id).classList.toggle('hidden', id !== v)); }
+function parseHash() { const p = location.hash.replace(/^#\/?/, '').split('/'); return p[0] === 'tour' && p[1] ? { view: 'tour', id: p[1], tab: p[2] || '' } : { view: 'home' }; }
+function route() {
+  if (!CU) return;
+  const r = parseHash();
+  if (r.view === 'tour') openTour(r.id, r.tab);
+  else { closeTour(); showView('homeView'); document.title = 'Tour Planner'; renderHome(); }
+}
+window.addEventListener('hashchange', route);
+
+function subscribeTours() {
+  if (unsubTours) unsubTours();
+  const q = query(collection(db, 'tours'), where('memberEmails', 'array-contains', myEmail()));
+  unsubTours = onSnapshot(q, snap => {
+    TOURS = snap.docs.map(d => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) }));
+    TOURS.sort((a, b) => tsMs(b.updatedAt) - tsMs(a.updatedAt));
+    toursLoaded = true;
+    if (parseHash().view === 'home') renderHome();
+  }, err => {
+    console.error(err);
+    $('#tourGrid').innerHTML = `<div class="empty"><i class="bi bi-exclamation-triangle"></i>Could not load your tours (${esc(err.code || err.message)}). Check that the Firestore rules from the setup guide are published.</div>`;
+  });
+}
+
+function openTour(id, tab) {
+  if (T?.id !== id) {
+    closeTour();
+    T = { id }; S = null;
+    $('#tourTitle').textContent = 'Loading…';
+    $$('main.tour-main section').forEach(s => { s.innerHTML = ''; });
+    setSync('busy', 'Connecting');
+    tourRef = doc(db, 'tours', id);
+    stateRef = doc(db, 'tours', id, 'data', 'state');
+    unsubTour = onSnapshot(tourRef, snap => {
+      if (!snap.exists()) { if (!snap.metadata.fromCache) { toast('This tour was deleted or you no longer have access.'); location.hash = '#/'; } return; }
+      T = { id, ...snap.data({ serverTimestamps: 'estimate' }) };
+      applyTourMeta(); renderActive(true);
+    }, err => { console.error(err); toast('You do not have access to that tour.'); location.hash = '#/'; });
+    unsubState = onSnapshot(stateRef, { includeMetadataChanges: true }, onState, err => { console.error(err); setSync('err', 'Sync failed'); });
+  }
+  showView('tourView');
+  const valid = TABS.some(t => t[0] === tab);
+  showTab(valid ? tab : (localStorage.getItem('tp:tab:' + id) || 'overview'), !valid);
+  requestAnimationFrame(setChipsTop);
+}
+function closeTour() {
+  flush();
+  if (unsubTour) unsubTour(); if (unsubState) unsubState();
+  unsubTour = unsubState = null; T = null; S = null; tourRef = stateRef = null;
+  expFilter = placeFilter = foodFilter = logQ = 'all'; noteQ = ''; CV.from = CV.to = null;
+}
+function applyTourMeta() {
+  $('#tourTitle').textContent = `${T.emoji || ''} ${T.name || ''}`.trim();
+  document.title = `${T.name} | Tour Planner`;
+  document.documentElement.style.setProperty('--tag', T.color || SWATCHES[0]);
+}
+function setChipsTop() { const h = $('#tourTop')?.offsetHeight; if (h) document.documentElement.style.setProperty('--chips-top', h + 'px'); }
+window.addEventListener('resize', setChipsTop);
+
+function buildNav() {
+  const prim = TABS.slice(0, 5), more = TABS.slice(5);
+  $('#deskNav').innerHTML = prim.map(([k, l, i]) => `<li class="nav-item"><a href="#" class="nav-link" data-action="tab" data-tab-link="${k}"><i class="bi ${i} me-1"></i>${l}</a></li>`).join('')
+    + `<li class="nav-item dropdown"><a href="#" class="nav-link dropdown-toggle" id="moreToggle" data-action="noop" data-bs-toggle="dropdown" role="button" aria-expanded="false">More</a><ul class="dropdown-menu">${more.map(([k, l, i]) => `<li><a href="#" class="dropdown-item" data-action="tab" data-tab-link="${k}"><i class="bi ${i} me-2"></i>${l}</a></li>`).join('')}</ul></li>`;
+  $('#mobileNav').innerHTML = TABS.map(([k, l, i]) => `<button data-action="tab" data-tab-link="${k}"><i class="bi ${i}"></i>${l}</button>`).join('');
+}
+let tabLock = false;
+function showTab(k, scroll = true) {
+  if (!T) return;
+  curTab = k; localStorage.setItem('tp:tab:' + T.id, k);
+  $$('main.tour-main section').forEach(s => s.classList.toggle('hidden', s.dataset.tab !== k));
+  $$('[data-tab-link]').forEach(a => a.classList.toggle('active', a.dataset.tabLink === k));
+  $('#moreToggle')?.classList.toggle('active', TABS.slice(5).some(t => t[0] === k));
+  history.replaceState(null, '', `#/tour/${T.id}/${k}`);
+  renderActive();
+  if (scroll) window.scrollTo({ top: 0 });
+  // debounce guard so a double tap can't flicker the mobile menu
+  if (!tabLock) { tabLock = true; bootstrap.Offcanvas.getInstance($('#menuCanvas'))?.hide(); setTimeout(() => { tabLock = false; }, 350); }
+}
+function renderActive(keepScroll) {
+  if (!T || !S || !T.name) { const s = $(`section[data-tab="${curTab}"]`); if (s && !s.innerHTML) s.innerHTML = '<div class="loading"><div class="spinner-border text-warning" role="status"></div></div>'; return; }
+  const sec = $(`section[data-tab="${curTab}"]`);
+  if (!sec || !RENDER[curTab]) return;
+  // don't wipe a note someone is typing in
+  if (keepScroll && document.activeElement && sec.contains(document.activeElement) && document.activeElement.matches('textarea,input')) return;
+  RENDER[curTab](sec);
+}
+
+/* ============================ UI helpers ============================ */
+const head = (title, sub, btns = '') => `<div class="sec-head"><div><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ''}</div><div class="d-flex gap-2 flex-wrap">${btns}</div></div>`;
+const emptyBox = (icon, text, btn = '') => `<div class="empty"><i class="bi ${icon}"></i>${text}${btn ? `<div class="mt-3">${btn}</div>` : ''}</div>`;
+const iconBtn = (action, id, icon, title, extra = '', data = '') => `<button class="btn-icon ${extra}" data-action="${action}" data-id="${id}" ${data} title="${title}" aria-label="${title}"><i class="bi ${icon}"></i></button>`;
+const addBtn = (action, label, cls = 'btn-accent') => `<button class="btn ${cls} btn-sm" data-action="${action}"><i class="bi bi-plus-lg me-1"></i>${label}</button>`;
+const selectOpts = (opts, v) => opts.map(o => { const [val, lab] = Array.isArray(o) ? o : [o, o]; return `<option value="${esc(val)}" ${String(val) === String(v ?? '') ? 'selected' : ''}>${esc(lab)}</option>`; }).join('');
+const bar = (pct, extra = '') => `<div class="bar ${pct > 100 ? 'over' : pct > 85 ? 'warn' : ''} ${extra}"><span style="width:${Math.min(100, Math.max(0, pct))}%"></span></div>`;
+const rvClass = r => 'rv-' + String(r || '').toLowerCase().replace(/\s+/g, '');
+
+const formModal = new bootstrap.Modal('#formModal');
+const infoModal = new bootstrap.Modal('#infoModal');
+let formHandler = null;
+
+function fieldHTML(f, v) {
+  const id = 'f_' + f.name, col = f.col || 'col-12';
+  v = v ?? f.value ?? '';
+  const lab = `<label class="form-label" for="${id}">${esc(f.label)}</label>`;
+  const help = f.help ? `<div class="faint small mt-1">${esc(f.help)}</div>` : '';
+  switch (f.type) {
+    case 'textarea': return `<div class="${col}">${lab}<textarea class="form-control" id="${id}" name="${f.name}" rows="${f.rows || 3}" placeholder="${esc(f.ph || '')}">${esc(v)}</textarea>${help}</div>`;
+    case 'select': return `<div class="${col}">${lab}<select class="form-select" id="${id}" name="${f.name}">${selectOpts(f.options, v)}</select>${help}</div>`;
+    case 'check': return `<div class="${col}"><div class="form-check"><input class="form-check-input" type="checkbox" id="${id}" name="${f.name}" ${v ? 'checked' : ''}><label class="form-check-label" for="${id}">${esc(f.label)}</label></div>${help}</div>`;
+    case 'swatch': return `<div class="${col}"><span class="form-label d-block">${esc(f.label)}</span><div class="swatches">${SWATCHES.map((c, i) => `<input type="radio" name="${f.name}" id="${id}${i}" value="${c}" ${(v || SWATCHES[0]) === c ? 'checked' : ''}><label for="${id}${i}" style="background:${c}" title="${c}"></label>`).join('')}</div></div>`;
+    case 'time12': {
+      let h = '', m = '00', ap = 'AM';
+      if (v) { const [H, M] = v.split(':').map(Number); ap = H >= 12 ? 'PM' : 'AM'; h = String(H % 12 || 12); m = String(M).padStart(2, '0'); }
+      return `<div class="${col}">${lab}<div class="time12">
+        <select class="form-select" id="${id}" name="${f.name}_h" aria-label="Hour"><option value="">Hour</option>${range(1, 12).map(x => `<option ${String(x) === h ? 'selected' : ''}>${x}</option>`).join('')}</select>
+        <select class="form-select" name="${f.name}_m" aria-label="Minute">${range(0, 59).map(x => { const s = String(x).padStart(2, '0'); return `<option ${s === m ? 'selected' : ''}>${s}</option>`; }).join('')}</select>
+        <select class="form-select" name="${f.name}_ap" aria-label="AM or PM"><option ${ap === 'AM' ? 'selected' : ''}>AM</option><option ${ap === 'PM' ? 'selected' : ''}>PM</option></select>
+        <span class="btn-icon position-relative flex-shrink-0" style="width:38px;height:38px" title="Pick on clock"><i class="bi bi-clock"></i><input type="time" data-clock="${f.name}" value="${esc(v)}" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer" aria-label="Pick ${esc(f.label)} on a clock"></span>
+      </div>${help}</div>`;
+    }
+    default: {
+      const t = f.type || 'text';
+      const extra = t === 'number' ? 'step="any" inputmode="decimal"' : '';
+      return `<div class="${col}">${lab}<input class="form-control" id="${id}" name="${f.name}" type="${t}" ${extra} value="${esc(v)}" placeholder="${esc(f.ph || '')}" ${t === 'email' ? 'autocomplete="email"' : ''}>${help}</div>`;
+    }
+  }
+}
+function readField(f) {
+  const b = $('#formModalBody');
+  if (f.type === 'time12') {
+    const h = b.querySelector(`[name="${f.name}_h"]`).value; if (!h) return '';
+    let H = Number(h) % 12; if (b.querySelector(`[name="${f.name}_ap"]`).value === 'PM') H += 12;
+    return `${String(H).padStart(2, '0')}:${b.querySelector(`[name="${f.name}_m"]`).value}`;
+  }
+  if (f.type === 'check') return b.querySelector(`[name="${f.name}"]`).checked;
+  if (f.type === 'swatch') return b.querySelector(`[name="${f.name}"]:checked`)?.value || '';
+  const v = b.querySelector(`[name="${f.name}"]`).value.trim();
+  return f.type === 'number' ? (v === '' ? '' : num(v)) : v;
+}
+function openForm({ title, ok = 'Save', fields, values = {}, onSubmit }) {
+  $('#formModalTitle').textContent = title; $('#formModalOk').textContent = ok; $('#formModalErr').textContent = '';
+  $('#formModalBody').innerHTML = `<div class="row g-3">${fields.map(f => fieldHTML(f, values[f.name])).join('')}</div>`;
+  formHandler = { fields, onSubmit }; formModal.show();
+}
+$('#formModal').addEventListener('shown.bs.modal', () => $('#formModalBody').querySelector('input:not([type=radio]):not([type=checkbox]):not([type=time]),textarea,select')?.focus());
+$('#formModalForm').addEventListener('submit', async e => {
+  e.preventDefault(); if (!formHandler) return;
+  const vals = {};
+  for (const f of formHandler.fields) {
+    vals[f.name] = readField(f);
+    if (f.required && (vals[f.name] === '' || vals[f.name] == null)) { $('#formModalErr').textContent = `Fill in "${f.label}".`; return; }
+  }
+  const btn = $('#formModalOk'); btn.disabled = true;
+  try { const r = await formHandler.onSubmit(vals); if (typeof r === 'string') { $('#formModalErr').textContent = r; return; } formModal.hide(); }
+  catch (err) { console.error(err); $('#formModalErr').textContent = err.message || String(err); }
+  finally { btn.disabled = false; }
+});
+function confirmBox(title, html, okLabel = 'Delete', danger = true) {
+  return new Promise(res => {
+    $('#infoTitle').textContent = title; $('#infoBody').innerHTML = html;
+    $('#infoFoot').innerHTML = `<button class="btn btn-ghost" data-bs-dismiss="modal">Cancel</button><button class="btn ${danger ? 'btn-danger' : 'btn-accent'}" id="infoOk">${esc(okLabel)}</button>`;
+    let ok = false; $('#infoOk').onclick = () => { ok = true; infoModal.hide(); };
+    $('#infoModal').addEventListener('hidden.bs.modal', () => res(ok), { once: true });
+    infoModal.show();
+  });
+}
+function infoBox(title, html, foot = '') {
+  $('#infoTitle').textContent = title; $('#infoBody').innerHTML = html;
+  $('#infoFoot').innerHTML = foot + `<button class="btn btn-ghost" data-bs-dismiss="modal">Close</button>`;
+  infoModal.show();
+}
+async function copyText(t) { try { await navigator.clipboard.writeText(t); toast('Copied'); } catch { toast('Copy failed. Long-press to copy instead.'); } }
+function centerChip(sec) { const wrap = sec.querySelector('.day-chips'), a = sec.querySelector('.day-chip.active'); if (wrap && a) wrap.scrollLeft = a.offsetLeft - wrap.clientWidth / 2 + a.clientWidth / 2; }
+
+/* ============================ computed totals ============================ */
+function spendParts() {
+  const exp = S.expenses.reduce((a, e) => a + toHome(e.amount, e.cur), 0);
+  const food = S.food.reduce((a, f) => a + (f.price ? toHome(f.price, f.cur) : 0), 0);
+  const req = S.requests.filter(r => r.bought).reduce((a, r) => a + toHome(r.price, r.cur), 0);
+  const pre = S.lists.filter(l => l.priced).flatMap(l => l.items).reduce((a, i) => a + (i.price ? toHome(i.price, i.cur) : 0), 0);
+  return { exp, food, req, pre, total: exp + food + req };
+}
+function budgetRange() { let min = 0, max = 0; S.budget.forEach(b => { min += toHome(b.min, b.cur); max += toHome(b.max || b.min, b.cur); }); return { min, max }; }
+function checklistProgress() { const it = S.lists.flatMap(l => l.items); return { done: it.filter(i => i.done).length, total: it.length }; }
+function tourStatus(t) {
+  const today = isoLocal();
+  if (!t.startDate) return { cls: 'up', label: 'No dates yet' };
+  if (today < t.startDate) { const n = daysBetween(today, t.startDate); return { cls: 'up', label: n === 1 ? 'Starts tomorrow' : `Starts in ${n} days` }; }
+  if (!t.endDate || today <= t.endDate) { const d = daysBetween(t.startDate, today) + 1, tot = t.endDate ? daysBetween(t.startDate, t.endDate) + 1 : null; return { cls: 'on', label: tot ? `Day ${d} of ${tot}` : `Day ${d}` }; }
+  return { cls: 'done', label: 'Completed' };
+}
+function curDayId() {
+  let id = localStorage.getItem('tp:day:' + T.id);
+  if (!S.days.some(d => d.id === id)) id = (S.days.find(d => d.date === isoLocal()) || S.days[0])?.id;
+  return id;
+}
+const dayLabel = d => { const i = S.days.indexOf(d); return `Day ${i + 1}${d.date ? ` (${fmtDate(d.date)})` : ''}`; };
+function chips(activeId) {
+  const today = isoLocal();
+  return `<div class="day-chips" role="tablist" aria-label="Days">${S.days.map((d, i) => `<button class="day-chip ${d.id === activeId ? 'active' : ''} ${d.date === today ? 'today' : ''}" data-action="pick-day" data-id="${d.id}" role="tab" aria-selected="${d.id === activeId}"><b>Day ${i + 1}</b><small>${d.date ? fmtDate(d.date) : 'No date'}</small></button>`).join('')}</div>`;
+}
+
+/* ============================ HOME ============================ */
+function renderHome() {
+  const g = $('#tourGrid');
+  $('#homeUser').textContent = myName();
+  if (!toursLoaded) { g.innerHTML = '<div class="dim">Loading your tours…</div>'; return; }
+  $('#homeCount').textContent = TOURS.length ? `${TOURS.length} tour${TOURS.length > 1 ? 's' : ''}. Open one to plan, track spending and log your days.` : 'Create your first tour to get started.';
+  g.innerHTML = TOURS.map(t => {
+    const st = tourStatus(t), mine = t.ownerUid === CU.uid;
+    return `<div class="tour-tag" style="--tag:${esc(t.color || SWATCHES[0])}" data-action="open-tour" data-id="${t.id}" role="link" tabindex="0" aria-label="Open ${esc(t.name)}">
+      <div class="d-flex justify-content-between align-items-start">
+        <span class="emoji">${esc(t.emoji || '🧭')}</span>
+        <div class="dropdown">
+          <button class="btn-icon" data-action="noop" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Options for ${esc(t.name)}"><i class="bi bi-three-dots"></i></button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#" data-action="dup-tour" data-id="${t.id}"><i class="bi bi-copy me-2"></i>Duplicate as new tour</a></li>
+            ${mine ? `<li><a class="dropdown-item text-danger" href="#" data-action="del-tour" data-id="${t.id}"><i class="bi bi-trash me-2"></i>Delete tour</a></li>`
+        : `<li><a class="dropdown-item" href="#" data-action="leave-tour" data-id="${t.id}"><i class="bi bi-box-arrow-left me-2"></i>Leave tour</a></li>`}
+          </ul>
+        </div>
+      </div>
+      <h3>${esc(t.name)}</h3>
+      <div class="meta">${esc(t.destination || 'No destination set')}</div>
+      <div class="meta">${t.startDate ? fmtDateLong(t.startDate) + (t.endDate ? ' to ' + fmtDateLong(t.endDate) : '') : 'Dates not set'}</div>
+      <div class="foot"><span class="status ${st.cls}">${st.label}</span>${mine ? (t.memberEmails?.length > 1 ? `<span class="faint small"><i class="bi bi-people"></i> ${t.memberEmails.length}</span>` : '') : `<span class="status shared">Shared with you</span>`}</div>
+    </div>`;
+  }).join('') + `<button class="new-tag" data-action="new-tour"><i class="bi bi-plus-circle"></i>New tour</button>`;
+}
+
+function tourFields(withTemplate, skipId) {
+  const f = [
+    { name: 'name', label: 'Tour name', required: true, ph: 'e.g. Dhaka tour' },
+    { name: 'destination', label: 'Destination', ph: 'e.g. Old Dhaka and Sonargaon' },
+    { name: 'startDate', label: 'Start date', type: 'date', col: 'col-6' },
+    { name: 'endDate', label: 'End date', type: 'date', col: 'col-6' },
+    { name: 'homeCur', label: 'Home currency', col: 'col-6', ph: 'BDT' },
+    { name: 'destCur', label: 'Destination currency', col: 'col-6', ph: 'INR' },
+    { name: 'homeTz', label: 'Home time label', col: 'col-6', ph: 'BDT' },
+    { name: 'destTz', label: 'Destination time label', col: 'col-6', ph: 'IST' },
+    { name: 'rate', label: 'Rate: 1 unit of destination currency in home currency', type: 'number', help: 'Leave empty to use the live rate. Totals are converted to your home currency with this.' },
+    { name: 'emoji', label: 'Icon', col: 'col-4', ph: '🏔️' },
+    { name: 'color', label: 'Colour', type: 'swatch', col: 'col-8' }
+  ];
+  if (withTemplate && TOURS.length) f.push({ name: 'template', label: 'Start from', type: 'select', options: [['', 'A blank tour'], ...TOURS.map(t => [t.id, `The plan of "${t.name}"`])], help: 'Copying a plan brings the day plan, budget, checklists, contacts and notes, but not spending or logs.' });
+  return f;
+}
+function cleanMeta(v) {
+  const cur = x => String(x || '').toUpperCase().trim();
+  if (v.startDate && v.endDate && v.endDate < v.startDate) return 'End date is before the start date.';
+  const homeCur = cur(v.homeCur) || 'BDT', destCur = cur(v.destCur) || homeCur;
+  if (!/^[A-Z]{3}$/.test(homeCur) || !/^[A-Z]{3}$/.test(destCur)) return 'Currencies must be 3-letter codes like BDT, INR or USD.';
+  return { name: v.name, destination: v.destination || '', startDate: v.startDate || '', endDate: v.endDate || '', homeCur, destCur, homeTz: v.homeTz || homeCur, destTz: v.destTz || destCur, rate: num(v.rate) || 0, emoji: v.emoji || '🧭', color: v.color || SWATCHES[0] };
+}
+async function fillRate(meta) {
+  if (meta.homeCur === meta.destCur) { meta.rate = 1; return; }
+  if (!meta.rate) { try { await fetchRates(); meta.rate = round(liveRate(meta.destCur, meta.homeCur) || 0); } catch { } }
+}
+function newTourForm(prefill = {}) {
+  openForm({
+    title: prefill.template ? 'Duplicate tour' : 'New tour', ok: 'Create tour', fields: tourFields(true),
+    values: { homeCur: 'BDT', homeTz: 'BDT', color: SWATCHES[TOURS.length % SWATCHES.length], ...prefill },
+    onSubmit: async v => {
+      const m = cleanMeta(v); if (typeof m === 'string') return m;
+      await fillRate(m);
+      const ref = doc(collection(db, 'tours'));
+      const meta = { ...m, ownerUid: CU.uid, ownerEmail: myEmail(), ownerName: myName(), memberEmails: [myEmail()], createdAt: serverTimestamp(), updatedAt: serverTimestamp() };
+      let st = freshState(meta);
+      if (v.template) { try { const s = await getDoc(doc(db, 'tours', v.template, 'data', 'state')); if (s.exists()) { const prevT = T; T = { ...meta }; st = templateFrom(normalize(s.data().state), meta); T = prevT; } } catch (e) { console.error(e); } }
+      st.log = [{ t: Date.now(), who: myName(), what: v.template ? 'Created the tour from an existing plan' : 'Created the tour' }];
+      // written in order: the tour first, then its data (the rules check the tour doc)
+      setDoc(ref, meta).catch(e => toast('Could not create tour (' + (e.code || e.message) + ')'));
+      setDoc(doc(db, 'tours', ref.id, 'data', 'state'), { state: st, updatedAt: serverTimestamp(), updatedBy: myName(), clientId: CLIENT }).catch(e => console.error(e));
+      toast(`Created ${meta.name}`);
+      location.hash = `#/tour/${ref.id}/overview`;
+    }
+  });
+}
+
+/* ============================ RENDERERS ============================ */
+const RENDER = {};
+
+RENDER.overview = sec => {
+  const st = tourStatus(T), sp = spendParts(), br = budgetRange(), cp = checklistProgress();
+  const visited = S.places.filter(p => p.status === 'visited').length;
+  const steps = S.days.reduce((a, d) => a + d.steps.length, 0);
+  const reqDone = S.requests.filter(r => r.bought).length;
+  const usePct = br.max ? sp.total / br.max * 100 : 0;
+  const dates = T.startDate ? `${fmtDateLong(T.startDate)}${T.endDate ? ' to ' + fmtDateLong(T.endDate) : ''}` : 'Dates not set';
+  const today = S.days.find(d => d.date === isoLocal());
+  const focus = today || (st.cls === 'up' ? S.days[0] : null);
+  const stat = (v, l, extra = '') => `<div class="stat"><div class="v">${v}</div><div class="l">${l}</div>${extra}</div>`;
+  sec.innerHTML = `
+  <div class="hero" style="--tag:${esc(T.color)}">
+    <div class="emoji" aria-hidden="true">${esc(T.emoji || '🧭')}</div>
+    <h1>${esc(T.name)}</h1>
+    <div class="dim">${T.destination ? esc(T.destination) + '. ' : ''}${dates}</div>
+    <div class="countdown mt-2">${st.label}</div>
+    <div class="d-flex gap-2 flex-wrap mt-3">
+      <button class="btn btn-accent btn-sm" data-action="add-expense"><i class="bi bi-plus-lg me-1"></i>Add expense</button>
+      <button class="btn btn-ghost btn-sm" data-action="add-activity">Log activity</button>
+      <button class="btn btn-ghost btn-sm" data-action="add-food">Log food</button>
+      <button class="btn btn-ghost btn-sm" data-action="add-place">Add place</button>
+    </div>
+  </div>
+  <div class="stat-grid">
+    ${stat(money(sp.total, T.homeCur), 'Spent on the trip', br.max ? bar(usePct) : '')}
+    ${stat(br.max ? `${fmtN(br.min, 0)} to ${fmtN(br.max, 0)}` : 'Not set', `Planned budget (${T.homeCur})`)}
+    ${stat(`${S.days.length} days`, `${steps} planned stops`)}
+    ${stat(`${cp.done}/${cp.total}`, 'Checklist items done', bar(cp.total ? cp.done / cp.total * 100 : 0))}
+    ${stat(`${visited}/${S.places.length}`, 'Places visited')}
+    ${stat(S.food.length, 'Meals logged')}
+    ${stat(`${reqDone}/${S.requests.length}`, 'Requests bought')}
+    ${stat(money(sp.pre, T.homeCur), 'Pre-trip shopping (not in totals)')}
+  </div>
+  ${focus ? `<div class="panel mt-3">
+    <div class="d-flex justify-content-between align-items-start gap-2"><div><div class="dim small">${today ? 'Today' : 'First day'}, ${esc(dayLabel(focus))}</div><h3>${esc(focus.title || 'Untitled day')}</h3></div>
+    <button class="btn btn-ghost btn-sm" data-action="goto-day" data-id="${focus.id}">Open day</button></div>
+    ${focus.steps.length ? focus.steps.slice(0, 6).map(s => `<div class="step"><div class="t">${esc(s.time) || '&nbsp;'}</div><div>${esc(s.text)}</div><div></div></div>`).join('') : '<p class="dim mb-0">Nothing planned for this day yet.</p>'}
+  </div>` : ''}
+  <div class="panel">
+    <h3>Travelling together</h3>
+    <p class="dim mb-2">${T.memberEmails.map(esc).join(', ')}</p>
+    <button class="btn btn-ghost btn-sm" data-action="tab" data-tab-link="settings">Manage sharing</button>
+  </div>`;
+};
+
+RENDER.plan = sec => {
+  const btn = `<button class="btn btn-ghost btn-sm" data-action="add-day"><i class="bi bi-plus-lg me-1"></i>Add day</button>`;
+  if (!S.days.length) { sec.innerHTML = head('Day plan', 'Build your itinerary one day at a time.') + emptyBox('bi-calendar3', 'No days yet.', btn); return; }
+  const id = curDayId(), idx = S.days.findIndex(d => d.id === id), d = S.days[idx];
+  sec.innerHTML = head('Day plan', 'What you plan to do each day.', btn) + chips(id) + `
+  <div class="panel">
+    <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+      <div><div class="dim small">Day ${idx + 1}${d.date ? ', ' + fmtDate(d.date, { weekday: 'long', day: 'numeric', month: 'long' }) : ''}</div><h3 class="mb-0">${esc(d.title || 'Untitled day')}</h3></div>
+      <div class="d-flex gap-1">${iconBtn('edit-day', d.id, 'bi-pencil', 'Edit day')}${iconBtn('del-day', d.id, 'bi-trash', 'Delete day', 'danger')}</div>
+    </div>
+    <div>${d.steps.length ? d.steps.map((s, i) => `<div class="step"><div class="t">${esc(s.time) || '&nbsp;'}</div><div style="white-space:pre-wrap">${esc(s.text)}</div><div class="acts">${i > 0 ? iconBtn('step-up', s.id, 'bi-arrow-up', 'Move up') : ''}${iconBtn('edit-step', s.id, 'bi-pencil', 'Edit stop')}${iconBtn('del-step', s.id, 'bi-trash', 'Delete stop', 'danger')}</div></div>`).join('') : '<p class="dim my-2">No stops planned for this day yet.</p>'}</div>
+    <button class="btn btn-ghost btn-sm mt-2" data-action="add-step" data-id="${d.id}"><i class="bi bi-plus-lg me-1"></i>Add stop</button>
+  </div>
+  <div class="panel"><h3><label for="dayNote">Notes for Day ${idx + 1}</label></h3>
+    <textarea class="form-control day-note" id="dayNote" data-input="day-note" data-id="${d.id}" placeholder="Anything to remember for this day">${esc(d.note || '')}</textarea>
+    <div class="faint small mt-1">Saves as you type.</div></div>`;
+  centerChip(sec);
+};
+
+RENDER.activity = sec => {
+  if (!S.days.length) { sec.innerHTML = head('My activity', 'What you actually did each day.') + emptyBox('bi-journal-check', 'Add days in the Day plan first.'); return; }
+  const id = curDayId(), idx = S.days.findIndex(d => d.id === id), d = S.days[idx];
+  const a = S.activity[id] || { title: '', entries: [] };
+  const list = [...a.entries].sort((x, y) => (x.start || '99').localeCompare(y.start || '99'));
+  sec.innerHTML = head('My activity', 'What you actually did, next to what you planned.', addBtn('add-activity', 'Log activity')) + chips(id) + `
+  <div class="panel">
+    <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+      <div><div class="dim small">Day ${idx + 1}${d.date ? ', ' + fmtDate(d.date, { weekday: 'long', day: 'numeric', month: 'long' }) : ''}${d.title ? `. Planned: ${esc(d.title)}` : ''}</div>
+      <h3 class="mb-0">${esc(a.title || 'How did the day go?')}</h3></div>
+      ${iconBtn('edit-act-title', id, 'bi-pencil', 'Edit day title')}
+    </div>
+    ${list.length ? list.map(e => `<div class="step"><div class="t">${e.start ? to12(e.start) : 'No time'}${e.end ? `<br><span class="faint">to ${to12(e.end)}</span>` : ''}<span class="tz ${e.tz === 'home' ? 'home' : 'dest'}">${esc(e.tz === 'home' ? T.homeTz : T.destTz)}</span></div>
+      <div><div style="white-space:pre-wrap">${esc(e.text)}</div>${e.place ? `<div class="faint small"><i class="bi bi-geo-alt"></i> ${esc(e.place)}</div>` : ''}${e.by ? `<div class="faint small">Logged by ${esc(e.by)}</div>` : ''}</div>
+      <div class="acts">${iconBtn('edit-act', e.id, 'bi-pencil', 'Edit entry')}${iconBtn('del-act', e.id, 'bi-trash', 'Delete entry', 'danger')}</div></div>`).join('')
+      : '<p class="dim my-2">Nothing logged for this day yet.</p>'}
+  </div>`;
+  centerChip(sec);
+};
+
+RENDER.expenses = sec => {
+  const cats = [...new Set(S.expenses.map(e => e.category).filter(Boolean))];
+  const list = S.expenses.filter(e => expFilter === 'all' || e.category === expFilter).sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.created - a.created);
+  const total = list.reduce((a, e) => a + toHome(e.amount, e.cur), 0);
+  sec.innerHTML = head('Expenses', 'Everything you spend on the trip.', addBtn('add-expense', 'Add expense')) +
+    (S.expenses.length ? `<div class="d-flex gap-2 align-items-center mb-2 flex-wrap"><label class="dim small" for="expFilter">Show</label>
+      <select class="form-select form-select-sm w-auto" id="expFilter" data-change="exp-filter">${selectOpts([['all', 'All categories'], ...cats], expFilter)}</select>
+      <span class="ms-auto fw-bold">${money(total, T.homeCur)}</span></div>
+    <div class="tbl-wrap"><table class="t"><thead><tr><th>Date</th><th>Item</th><th>Category</th><th>Paid by</th><th class="num">Amount</th><th class="num">In ${esc(T.homeCur)}</th><th></th></tr></thead><tbody>
+    ${list.map(e => `<tr><td>${e.date ? fmtDate(e.date) : ''}</td><td>${esc(e.item)}${e.note ? `<div class="faint small">${esc(e.note)}</div>` : ''}</td><td><span class="pill">${esc(e.category)}</span></td><td>${esc(e.paidBy || '')}</td><td class="num">${money(e.amount, e.cur)}</td><td class="num">${fmtN(toHome(e.amount, e.cur))}</td><td><div class="row-acts">${iconBtn('edit-exp', e.id, 'bi-pencil', 'Edit')}${iconBtn('del-exp', e.id, 'bi-trash', 'Delete', 'danger')}</div></td></tr>`).join('')}
+    </tbody><tfoot><tr><td colspan="5">Total${expFilter !== 'all' ? ` (${esc(expFilter)})` : ''}</td><td class="num">${fmtN(total)}</td><td></td></tr></tfoot></table></div>`
+      : emptyBox('bi-wallet2', 'No expenses yet. Add one each time you pay for something.'));
+};
+
+RENDER.budget = sec => {
+  const br = budgetRange(), sp = spendParts();
+  const spent = {}, planned = {};
+  S.expenses.forEach(e => { spent[e.category || 'Other'] = (spent[e.category || 'Other'] || 0) + toHome(e.amount, e.cur); });
+  if (sp.food) spent.Food = (spent.Food || 0) + sp.food;
+  if (sp.req) spent.Requests = (spent.Requests || 0) + sp.req;
+  S.budget.forEach(b => { planned[b.category || 'Other'] = (planned[b.category || 'Other'] || 0) + toHome(b.max || b.min, b.cur); });
+  const cats = [...new Set([...Object.keys(planned), ...Object.keys(spent)])];
+  sec.innerHTML = head('Budget', 'Your planned costs next to what you have spent.', addBtn('add-budget', 'Add budget item')) + `
+  <div class="stat-grid mb-3">
+    <div class="stat"><div class="v">${br.max ? `${fmtN(br.min, 0)} to ${fmtN(br.max, 0)}` : 'Not set'}</div><div class="l">Planned (${T.homeCur})</div></div>
+    <div class="stat"><div class="v">${money(sp.total, T.homeCur)}</div><div class="l">Spent: expenses ${fmtN(sp.exp, 0)}, food ${fmtN(sp.food, 0)}, requests ${fmtN(sp.req, 0)}</div>${br.max ? bar(sp.total / br.max * 100) : ''}</div>
+    <div class="stat"><div class="v">${br.max ? money(br.max - sp.total, T.homeCur) : '-'}</div><div class="l">Left against the top of the budget</div></div>
+    <div class="stat"><div class="v">${money(sp.pre, T.homeCur)}</div><div class="l">Pre-trip shopping, kept out of trip totals</div></div>
+  </div>
+  ${cats.length ? `<div class="panel"><h3>By category</h3>${cats.map(c => { const p = planned[c] || 0, s = spent[c] || 0; return `<div class="mb-3"><div class="d-flex justify-content-between"><span>${esc(c)}</span><span class="dim small">${fmtN(s, 0)}${p ? ` of ${fmtN(p, 0)}` : ' (not budgeted)'} ${T.homeCur}</span></div>${bar(p ? s / p * 100 : (s ? 101 : 0))}</div>`; }).join('')}</div>` : ''}
+  <div class="panel"><h3>Planned costs</h3>
+  ${S.budget.length ? `<div class="tbl-wrap"><table class="t"><thead><tr><th>Item</th><th>Category</th><th class="num">From</th><th class="num">To</th><th class="num">In ${esc(T.homeCur)}</th><th></th></tr></thead><tbody>
+    ${S.budget.map(b => `<tr><td>${esc(b.item)}${b.note ? `<div class="faint small">${esc(b.note)}</div>` : ''}</td><td><span class="pill">${esc(b.category)}</span></td><td class="num">${money(b.min, b.cur)}</td><td class="num">${b.max ? money(b.max, b.cur) : ''}</td><td class="num">${fmtN(toHome(b.min, b.cur), 0)}${b.max ? ' to ' + fmtN(toHome(b.max, b.cur), 0) : ''}</td><td><div class="row-acts">${iconBtn('edit-bud', b.id, 'bi-pencil', 'Edit')}${iconBtn('del-bud', b.id, 'bi-trash', 'Delete', 'danger')}</div></td></tr>`).join('')}
+    </tbody><tfoot><tr><td colspan="4">Total</td><td class="num">${fmtN(br.min, 0)} to ${fmtN(br.max, 0)}</td><td></td></tr></tfoot></table></div>`
+      : '<p class="dim mb-0">List what you expect to pay for: travel, stays, tickets, food per day. Give a range when you are not sure.</p>'}
+  </div>`;
+};
+
+RENDER.places = sec => {
+  const list = S.places.filter(p => placeFilter === 'all' || p.status === placeFilter);
+  const f = (k, l) => `<button class="btn btn-sm ${placeFilter === k ? 'btn-accent' : 'btn-ghost'}" data-action="place-filter" data-id="${k}">${l}</button>`;
+  sec.innerHTML = head('Places', 'Places you want to see, and the ones you made it to.', addBtn('add-place', 'Add place')) +
+    (S.places.length ? `<div class="d-flex gap-2 mb-3">${f('all', 'All')}${f('planned', 'To visit')}${f('visited', 'Visited')}</div>
+    <div class="tbl-wrap"><table class="t"><thead><tr><th>Visited</th><th>Place</th><th>Date</th><th>Rating</th><th></th></tr></thead><tbody>
+    ${list.map(p => `<tr><td><input class="form-check-input" type="checkbox" data-change="toggle-visit" data-id="${p.id}" ${p.status === 'visited' ? 'checked' : ''} aria-label="Mark ${esc(p.name)} visited"></td>
+      <td><b>${esc(p.name)}</b>${p.area ? `<span class="dim"> ${esc(p.area)}</span>` : ''}${p.notes ? `<div class="faint small" style="white-space:pre-wrap">${esc(p.notes)}</div>` : ''}
+      <div class="small"><a href="${p.link ? esc(p.link) : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(p.name + ' ' + (p.area || T.destination || ''))}" target="_blank" rel="noopener"><i class="bi bi-map"></i> Map</a></div></td>
+      <td>${p.date ? fmtDate(p.date) : ''}</td><td>${p.rating ? `<span class="pill">${esc(p.rating)}</span>` : ''}</td>
+      <td><div class="row-acts">${iconBtn('edit-place', p.id, 'bi-pencil', 'Edit')}${iconBtn('del-place', p.id, 'bi-trash', 'Delete', 'danger')}</div></td></tr>`).join('') || `<tr><td colspan="5" class="dim">Nothing here.</td></tr>`}
+    </tbody></table></div>` : emptyBox('bi-geo-alt', 'No places yet. Add the sights on your list, then tick them off as you go.'));
+};
+
+RENDER.food = sec => {
+  const list = S.food.filter(f => foodFilter === 'all' || f.review === foodFilter).sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.created - a.created);
+  const total = list.reduce((a, f) => a + (f.price ? toHome(f.price, f.cur) : 0), 0);
+  sec.innerHTML = head('Food', 'What you ate, where, and whether it was worth it.', addBtn('add-food', 'Log food')) +
+    (S.food.length ? `<div class="d-flex gap-2 align-items-center mb-2 flex-wrap"><label class="dim small" for="foodFilter">Show</label>
+      <select class="form-select form-select-sm w-auto" id="foodFilter" data-change="food-filter">${selectOpts([['all', 'All reviews'], ...REVIEWS], foodFilter)}</select>
+      <span class="ms-auto fw-bold">${money(total, T.homeCur)}</span></div>
+    <div class="tbl-wrap"><table class="t"><thead><tr><th>Date</th><th>Dish</th><th>Where</th><th>Review</th><th class="num">Price</th><th></th></tr></thead><tbody>
+    ${list.map(f => `<tr><td>${f.date ? fmtDate(f.date) : ''}</td><td><b>${esc(f.dish)}</b>${f.notes ? `<div class="faint small">${esc(f.notes)}</div>` : ''}</td><td>${esc(f.where || '')}</td>
+      <td>${f.review ? `<span class="pill ${rvClass(f.review)}">${esc(f.review)}</span>` : ''}</td><td class="num">${f.price ? money(f.price, f.cur) : ''}</td>
+      <td><div class="row-acts">${iconBtn('edit-food', f.id, 'bi-pencil', 'Edit')}${iconBtn('del-food', f.id, 'bi-trash', 'Delete', 'danger')}</div></td></tr>`).join('')}
+    </tbody><tfoot><tr><td colspan="4">Total in ${esc(T.homeCur)} (counted in trip spending)</td><td class="num">${fmtN(total)}</td><td></td></tr></tfoot></table></div>`
+      : emptyBox('bi-egg-fried', 'No meals logged yet.'));
+};
+
+RENDER.requests = sec => {
+  const bought = S.requests.filter(r => r.bought), total = bought.reduce((a, r) => a + toHome(r.price, r.cur), 0);
+  sec.innerHTML = head('Requests', 'Things people asked you to bring back. Add the price before marking something bought.', addBtn('add-req', 'Add request')) +
+    (S.requests.length ? `<div class="dim mb-2">${bought.length} of ${S.requests.length} bought, ${money(total, T.homeCur)}</div>
+    <div class="tbl-wrap"><table class="t"><thead><tr><th>Bought</th><th>Item</th><th>For</th><th class="num">Price</th><th></th></tr></thead><tbody>
+    ${S.requests.map(r => { const priced = num(r.price) > 0; return `<tr><td><input class="form-check-input" type="checkbox" data-change="toggle-req" data-id="${r.id}" ${r.bought ? 'checked' : ''} ${priced ? '' : 'disabled'} aria-label="Mark ${esc(r.item)} bought" title="${priced ? 'Mark bought' : 'Add a price first'}"></td>
+      <td><b>${esc(r.item)}</b>${r.qty ? `<span class="dim"> x ${esc(r.qty)}</span>` : ''}${r.note ? `<div class="faint small">${esc(r.note)}</div>` : ''}</td><td>${esc(r.forWhom || '')}</td>
+      <td class="num">${priced ? money(r.price, r.cur) : `<button class="btn btn-ghost btn-sm" data-action="price-req" data-id="${r.id}"><i class="bi bi-lock me-1"></i>Add price</button>`}</td>
+      <td><div class="row-acts">${iconBtn('edit-req', r.id, 'bi-pencil', 'Edit')}${iconBtn('del-req', r.id, 'bi-trash', 'Delete', 'danger')}</div></td></tr>`; }).join('')}
+    </tbody><tfoot><tr><td colspan="3">Bought total in ${esc(T.homeCur)}</td><td class="num">${fmtN(total)}</td><td></td></tr></tfoot></table></div>`
+      : emptyBox('bi-bag-heart', 'No requests yet. Note who wants what so nothing gets forgotten.'));
+};
+
+RENDER.checklists = sec => {
+  sec.innerHTML = head('Checklists', 'Pre-trip shopping, packing, documents and your own lists.', addBtn('add-list', 'New list', 'btn-ghost')) +
+    (S.lists.length ? S.lists.map(l => {
+      const done = l.items.filter(i => i.done).length, tot = l.items.reduce((a, i) => a + (i.price ? toHome(i.price, i.cur) : 0), 0);
+      return `<div class="panel">
+        <div class="d-flex justify-content-between align-items-start gap-2"><div><h3 class="mb-0">${esc(l.name)}</h3><div class="dim small">${done} of ${l.items.length} done${l.priced ? `, ${money(tot, T.homeCur)} (not in trip totals)` : ''}</div></div>
+        <div class="d-flex gap-1">${done ? iconBtn('clear-done', l.id, 'bi-eraser', 'Remove ticked items') : ''}${iconBtn('edit-list', l.id, 'bi-pencil', 'Edit list')}${iconBtn('del-list', l.id, 'bi-trash', 'Delete list', 'danger')}</div></div>
+        ${bar(l.items.length ? done / l.items.length * 100 : 0, 'mb-2')}
+        ${l.items.map(i => `<div class="check-item ${i.done ? 'done' : ''}"><input class="form-check-input" type="checkbox" id="ci_${i.id}" data-change="toggle-item" data-list="${l.id}" data-id="${i.id}" ${i.done ? 'checked' : ''}>
+          <label class="txt" for="ci_${i.id}">${esc(i.text)}</label>${l.priced && i.price ? `<span class="dim small">${money(i.price, i.cur)}</span>` : ''}
+          ${iconBtn('edit-item', i.id, 'bi-pencil', 'Edit item', '', `data-list="${l.id}"`)}${iconBtn('del-item', i.id, 'bi-x-lg', 'Delete item', 'danger', `data-list="${l.id}"`)}</div>`).join('')}
+        <form class="d-flex gap-2 mt-2" data-submit="add-item" data-list="${l.id}"><input class="form-control form-control-sm" name="text" placeholder="Add an item" aria-label="New item for ${esc(l.name)}">${l.priced ? `<input class="form-control form-control-sm" name="price" inputmode="decimal" placeholder="Price" style="max-width:110px" aria-label="Price">` : ''}<button class="btn btn-ghost btn-sm">Add</button></form>
+      </div>`;
+    }).join('') : emptyBox('bi-check2-square', 'No lists yet.'));
+};
+
+RENDER.contacts = sec => {
+  sec.innerHTML = head('Important notes', 'Agents, hotels, drivers and anyone you may need to reach fast.', addBtn('add-contact', 'Add contact')) +
+    (S.contacts.length ? `<div class="card-grid">${S.contacts.map(c => {
+      const wa = String(c.whatsapp || c.phone || '').replace(/[^\d]/g, '');
+      return `<div class="c-card"><h4>${esc(c.name)}</h4>${c.role ? `<div class="dim small">${esc(c.role)}</div>` : ''}${c.phone ? `<div class="mt-1"><i class="bi bi-telephone me-1"></i>${esc(c.phone)}</div>` : ''}
+        ${c.details ? `<div class="body clamp">${esc(c.details)}</div>` : '<div class="body"></div>'}
+        <div class="acts">
+          ${wa ? `<a class="btn btn-wa btn-sm" href="https://wa.me/${wa}" target="_blank" rel="noopener"><i class="bi bi-whatsapp me-1"></i>WhatsApp</a>` : ''}
+          ${c.phone ? `<a class="btn btn-ghost btn-sm" href="tel:${esc(c.phone.replace(/[^\d+]/g, ''))}"><i class="bi bi-telephone me-1"></i>Call</a>` : ''}
+          ${c.phone ? iconBtn('copy', c.id, 'bi-clipboard', 'Copy number', '', `data-copy="${esc(c.phone)}"`) : ''}
+          ${c.details ? iconBtn('contact-details', c.id, 'bi-arrows-angle-expand', 'Full details') : ''}
+          ${iconBtn('edit-contact', c.id, 'bi-pencil', 'Edit')}${iconBtn('del-contact', c.id, 'bi-trash', 'Delete', 'danger')}
+        </div></div>`;
+    }).join('')}</div>` : emptyBox('bi-telephone', 'Add your travel agent, hotels and emergency numbers so they are one tap away.'));
+};
+
+function notesGridHTML() {
+  const q = noteQ.toLowerCase();
+  const list = S.notes.filter(n => !q || (n.title + ' ' + n.body).toLowerCase().includes(q)).sort((a, b) => (b.updated || 0) - (a.updated || 0));
+  return list.length ? `<div class="card-grid">${list.map(n => `<div class="c-card"><h4>${esc(n.title)}</h4><div class="faint small">${n.updated ? new Date(n.updated).toLocaleString() : ''}${n.by ? ', ' + esc(n.by) : ''}</div><div class="body clamp">${esc(n.body)}</div>
+    <div class="acts">${iconBtn('view-note', n.id, 'bi-arrows-angle-expand', 'Open note')}${iconBtn('edit-note', n.id, 'bi-pencil', 'Edit')}${iconBtn('del-note', n.id, 'bi-trash', 'Delete', 'danger')}</div></div>`).join('')}</div>`
+    : `<p class="dim">${S.notes.length ? 'No notes match your search.' : ''}</p>`;
+}
+RENDER.notes = sec => {
+  sec.innerHTML = head('Notes', 'Tips, ideas and anything else worth writing down.', addBtn('add-note', 'Add note')) +
+    (S.notes.length ? `<input class="form-control mb-3" type="search" placeholder="Search notes" aria-label="Search notes" data-input="note-search" value="${esc(noteQ)}"><div id="notesGrid">${notesGridHTML()}</div>`
+      : emptyBox('bi-sticky', 'No notes yet.'));
+};
+
+RENDER.currency = sec => {
+  if (!CV.from) { CV.from = T.destCur; CV.to = T.homeCur; }
+  const common = [...new Set([T.homeCur, T.destCur, 'USD', 'EUR', 'GBP'])];
+  const all = RATES ? [...common, ...Object.keys(RATES.rates).filter(c => !common.includes(c)).sort()] : common;
+  const quick = [[1, T.destCur, T.homeCur], [100, T.homeCur, T.destCur], [1, 'USD', T.homeCur], [1, 'USD', T.destCur]].filter(([, a, b]) => a !== b);
+  sec.innerHTML = head('Currency', 'Live rates for quick conversions.', `<button class="btn btn-ghost btn-sm" data-action="cv-refresh"><i class="bi bi-arrow-clockwise me-1"></i>Refresh rates</button>`) + `
+  <div class="panel"><div class="row g-2 align-items-end">
+    <div class="col-12 col-md-4"><label class="form-label" for="cvAmt">Amount</label><input class="form-control" id="cvAmt" inputmode="decimal" value="${esc(CV.amt)}" data-input="cv"></div>
+    <div class="col-5 col-md-3"><label class="form-label" for="cvFrom">From</label><select class="form-select" id="cvFrom" data-change="cv">${selectOpts(all, CV.from)}</select></div>
+    <div class="col-2 col-md-1 text-center"><button class="btn-icon" data-action="cv-swap" aria-label="Swap currencies"><i class="bi bi-arrow-left-right"></i></button></div>
+    <div class="col-5 col-md-4"><label class="form-label" for="cvTo">To</label><select class="form-select" id="cvTo" data-change="cv">${selectOpts(all, CV.to)}</select></div>
+  </div>
+  <div class="display mt-3" style="font-size:2rem;font-weight:800" id="cvOut" aria-live="polite"></div><div class="faint small" id="cvInfo"></div></div>
+  <div class="panel"><h3>Quick reference (live)</h3>${quick.map(([a, f, t]) => { const r = liveRate(f, t); return `<div class="d-flex justify-content-between py-1 border-bottom" style="border-color:var(--line)!important"><span>${a} ${f}</span><b>${r ? money(a * r, t) : '…'}</b></div>`; }).join('')}</div>
+  <div class="panel"><h3>Rate used for this tour's totals</h3>
+    <p class="dim">1 ${esc(T.destCur)} = <b>${T.rate ? fmtN(T.rate, 4) : 'not set'}</b> ${esc(T.homeCur)}. Totals use this fixed rate so they don't shift every day.${liveRate(T.destCur, T.homeCur) ? ` Today's live rate is ${fmtN(liveRate(T.destCur, T.homeCur), 4)}.` : ''}</p>
+    <div class="d-flex gap-2 flex-wrap"><button class="btn btn-ghost btn-sm" data-action="use-live-rate">Use today's live rate</button><button class="btn btn-ghost btn-sm" data-action="edit-rate">Set rate by hand</button></div></div>`;
+  updateCV();
+  if (!RATES) fetchRates().then(() => { if (curTab === 'currency') renderActive(); }).catch(() => { const i = $('#cvInfo'); if (i) i.textContent = 'Live rates are unavailable. Check your connection and refresh.'; });
+};
+function updateCV() {
+  const out = $('#cvOut'); if (!out) return;
+  const r = liveRate(CV.from, CV.to) ?? crossRate(CV.from, CV.to);
+  if (r == null) { out.textContent = '…'; return; }
+  out.textContent = money(num(CV.amt) * r, CV.to);
+  $('#cvInfo').textContent = `1 ${CV.from} = ${fmtN(r, 4)} ${CV.to}${RATES?.time ? `. Rates from ${new Date(RATES.time).toLocaleString()}` : ''}`;
+}
+
+const REPORT_SECTIONS = [['summary', 'Summary'], ['plan', 'Day plan'], ['activity', 'My activity'], ['expenses', 'Expenses'], ['budget', 'Budget'], ['places', 'Places'], ['food', 'Food'], ['requests', 'Requests'], ['checklists', 'Checklists'], ['contacts', 'Important notes'], ['notes', 'Notes']];
+RENDER.report = sec => {
+  sec.innerHTML = head('PDF report', 'Pick what to include, then download a PDF you can share or print.') + `
+  <div class="panel"><div class="row g-2">${REPORT_SECTIONS.map(([k, l]) => `<div class="col-6 col-md-4"><div class="form-check"><input class="form-check-input" type="checkbox" id="rp_${k}" data-report="${k}" checked><label class="form-check-label" for="rp_${k}">${l}</label></div></div>`).join('')}</div>
+  <div class="d-flex gap-2 mt-3 flex-wrap"><button class="btn btn-accent" data-action="gen-pdf"><i class="bi bi-download me-1"></i>Download PDF</button><button class="btn btn-ghost" data-action="report-all" data-id="1">Select all</button><button class="btn btn-ghost" data-action="report-all" data-id="0">Clear all</button></div>
+  <p class="faint small mt-3 mb-0">PDF fonts only cover Latin text. Bangla or emoji in your entries will be left out of the PDF but stay in the app.</p></div>`;
+};
+
+RENDER.log = sec => {
+  const people = [...new Set(S.log.map(l => l.who))];
+  const list = S.log.filter(l => logQ === 'all' || l.who === logQ);
+  sec.innerHTML = head('Change log', 'Who changed what, newest first. Keeps the last 300 changes.', isOwner() && S.log.length ? `<button class="btn btn-ghost btn-sm" data-action="clear-log">Clear log</button>` : '') +
+    (S.log.length ? `<div class="panel"><select class="form-select form-select-sm w-auto mb-2" data-change="log-filter" aria-label="Filter by person">${selectOpts([['all', 'Everyone'], ...people], logQ)}</select>
+    ${list.map(l => `<div class="log-row"><time>${new Date(l.t).toLocaleString([], { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</time><div><span class="who">${esc(l.who)}</span> ${esc(l.what)}</div></div>`).join('')}</div>`
+      : emptyBox('bi-clock-history', 'Changes will show up here.'));
+};
+
+RENDER.settings = sec => {
+  const owner = isOwner();
+  sec.innerHTML = head('Settings', 'Tour details, sharing, backups.') + `
+  <div class="panel"><div class="d-flex justify-content-between align-items-start gap-2"><div><h3>Tour details</h3>
+    <p class="dim mb-1">${esc(T.name)}, ${esc(T.destination || 'no destination')}. ${T.startDate ? fmtDateLong(T.startDate) : 'No start date'}${T.endDate ? ' to ' + fmtDateLong(T.endDate) : ''}.</p>
+    <p class="dim mb-0">Currencies ${esc(T.destCur)} to ${esc(T.homeCur)} at ${fmtN(T.rate, 4)}. Time labels ${esc(T.destTz)} and ${esc(T.homeTz)}.</p></div>
+    <button class="btn btn-ghost btn-sm" data-action="edit-meta"><i class="bi bi-pencil me-1"></i>Edit</button></div>
+    <button class="btn btn-ghost btn-sm mt-3" data-action="sync-days"><i class="bi bi-calendar-plus me-1"></i>Add missing days from the dates</button></div>
+
+  <div class="panel"><h3>Sharing</h3>
+    <p class="dim">People you add can see and edit this tour after they sign in with that email. ${owner ? '' : 'Only the owner can add or remove people.'}</p>
+    ${T.memberEmails.map(e => `<div class="d-flex align-items-center justify-content-between py-2 border-bottom" style="border-color:var(--line)!important"><span>${esc(e)} ${e === T.ownerEmail ? '<span class="pill ms-1">Owner</span>' : ''}${e === myEmail() ? '<span class="pill ms-1">You</span>' : ''}</span>
+      ${owner && e !== T.ownerEmail ? iconBtn('remove-member', '', 'bi-person-dash', 'Remove ' + e, 'danger', `data-email="${esc(e)}"`) : ''}</div>`).join('')}
+    ${owner ? `<form class="d-flex gap-2 mt-3" data-submit="add-member"><input class="form-control" type="email" name="email" placeholder="friend@example.com" aria-label="Email to share with" required><button class="btn btn-accent">Share</button></form>`
+      : `<button class="btn btn-ghost btn-sm mt-3" data-action="leave-tour" data-id="${T.id}">Leave this tour</button>`}
+  </div>
+
+  <div class="panel"><h3>Your name</h3><p class="dim">Shown in the change log instead of your email.</p>
+    <form class="d-flex gap-2" data-submit="set-name"><input class="form-control" name="name" value="${esc(auth.currentUser?.displayName || '')}" placeholder="Your name" aria-label="Your name"><button class="btn btn-ghost">Save name</button></form></div>
+
+  <div class="panel"><h3>Backup</h3><p class="dim">Download everything in this tour as a file, or restore one.</p>
+    <div class="d-flex gap-2 flex-wrap"><button class="btn btn-ghost btn-sm" data-action="export"><i class="bi bi-download me-1"></i>Export backup</button><button class="btn btn-ghost btn-sm" data-action="import"><i class="bi bi-upload me-1"></i>Import backup</button></div></div>
+
+  <div class="panel" style="border-color:rgba(226,125,140,.4)"><h3>Reset and delete</h3>
+    <p class="dim">Resets also clear the cloud copy, so every device sees the change.</p>
+    <div class="d-flex gap-2 flex-wrap">
+      <button class="btn btn-ghost btn-sm" data-action="reset-trip">Clear trip records, keep the plan</button>
+      <button class="btn btn-outline-danger btn-sm" data-action="reset-all">Reset everything</button>
+      ${owner ? `<button class="btn btn-danger btn-sm" data-action="del-tour" data-id="${T.id}">Delete tour</button>` : ''}
+    </div></div>`;
+};
+
+/* ============================ PDF ============================ */
+function pdfSafe(s) {
+  return String(s ?? '').replace(/[–—]/g, '-').replace(/[→⇒]/g, '->').replace(/←/g, '<-').replace(/[‘’]/g, "'").replace(/[“”]/g, '"')
+    .replace(/…/g, '...').replace(/₹/g, 'Rs.').replace(/৳/g, 'Tk').replace(/[•·]/g, '-').replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\xFF]/g, '').trim();
+}
+function genPDF() {
+  const pick = new Set($$('[data-report]').filter(c => c.checked).map(c => c.dataset.report));
+  if (!pick.size) { toast('Pick at least one section'); return; }
+  const { jsPDF } = window.jspdf; const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
+  const H = pdf.internal.pageSize.getHeight(); let y = 52;
+  const H$ = T.homeCur;
+  pdf.setFont('helvetica', 'bold'); pdf.setFontSize(20); pdf.text(pdfSafe(T.name) || 'Tour', 40, y);
+  pdf.setFont('helvetica', 'normal'); pdf.setFontSize(10); y += 16;
+  pdf.text(pdfSafe(`${T.destination || ''}  ${T.startDate ? fmtDateLong(T.startDate) : ''}${T.endDate ? ' to ' + fmtDateLong(T.endDate) : ''}  |  Generated ${new Date().toLocaleString()}`), 40, y);
+  const cell = c => (c && typeof c === 'object') ? { ...c, content: pdfSafe(c.content) } : pdfSafe(c);
+  const table = (title, headRow, body, foot) => {
+    if (y > H - 110) { pdf.addPage(); y = 40; }
+    y += 26; pdf.setFont('helvetica', 'bold'); pdf.setFontSize(13); pdf.text(pdfSafe(title), 40, y); y += 6;
+    pdf.autoTable({
+      startY: y, head: [headRow.map(pdfSafe)], body: body.length ? body.map(r => r.map(cell)) : [[{ content: 'Nothing recorded', colSpan: headRow.length }]],
+      foot: foot ? [foot.map(cell)] : undefined, showFoot: 'lastPage', theme: 'grid',
+      styles: { fontSize: 9, cellPadding: 4, overflow: 'linebreak', lineColor: [210, 220, 216] },
+      headStyles: { fillColor: [22, 48, 47], textColor: 255 }, footStyles: { fillColor: [242, 166, 90], textColor: [59, 34, 8], fontStyle: 'bold' },
+      margin: { left: 40, right: 40 }
+    });
+    y = pdf.lastAutoTable.finalY;
+  };
+  const dayRow = (d, extra) => [{ content: `${dayLabel(d)}${extra ? ': ' + extra : ''}`, colSpan: 2, styles: { fontStyle: 'bold', fillColor: [232, 242, 238] } }];
+  const sp = spendParts(), br = budgetRange(), cp = checklistProgress();
+  if (pick.has('summary')) table('Summary', ['Item', 'Value'], [
+    ['Destination', T.destination || '-'], ['Travellers', T.memberEmails.join(', ')],
+    ['Total spent', money(sp.total, H$)], ['  Expenses', money(sp.exp, H$)], ['  Food', money(sp.food, H$)], ['  Requests bought', money(sp.req, H$)],
+    ['Planned budget', br.max ? `${money(br.min, H$)} to ${money(br.max, H$)}` : '-'], ['Pre-trip shopping (not in totals)', money(sp.pre, H$)],
+    ['Rate used', `1 ${T.destCur} = ${T.rate} ${H$}`], ['Checklists', `${cp.done} of ${cp.total} done`]]);
+  if (pick.has('plan')) { const b = []; S.days.forEach(d => { b.push(dayRow(d, d.title)); d.steps.forEach(s => b.push([s.time || '', s.text])); if (d.note) b.push(['Note', d.note]); }); table('Day plan', ['Time', 'Plan'], b); }
+  if (pick.has('activity')) { const b = []; S.days.forEach(d => { const a = S.activity[d.id]; if (!a || (!a.entries.length && !a.title)) return; b.push(dayRow(d, a.title)); [...a.entries].sort((x, y2) => (x.start || '').localeCompare(y2.start || '')).forEach(e => b.push([`${to12(e.start)}${e.end ? ' - ' + to12(e.end) : ''} ${e.tz === 'home' ? T.homeTz : T.destTz}`, e.text + (e.place ? ` (${e.place})` : '')])); }); table('My activity', ['Time', 'What happened'], b); }
+  if (pick.has('expenses')) {
+    const list = [...S.expenses].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    table('Expenses', ['Date', 'Item', 'Category', 'Paid by', 'Amount', `In ${H$}`], list.map(e => [e.date ? fmtDate(e.date) : '', e.item, e.category, e.paidBy || '', money(e.amount, e.cur), fmtN(toHome(e.amount, e.cur))]), ['', '', '', '', 'Subtotal', fmtN(sp.exp)]);
+    const byCat = {}; S.expenses.forEach(e => { byCat[e.category] = (byCat[e.category] || 0) + toHome(e.amount, e.cur); });
+    if (Object.keys(byCat).length) table('Expenses by category', ['Category', `Total in ${H$}`], Object.entries(byCat).map(([k, v]) => [k, fmtN(v)]), ['Subtotal', fmtN(sp.exp)]);
+  }
+  if (pick.has('budget')) table('Budget', ['Item', 'Category', 'From', 'To', `In ${H$}`], S.budget.map(b => [b.item, b.category, money(b.min, b.cur), b.max ? money(b.max, b.cur) : '', `${fmtN(toHome(b.min, b.cur), 0)}${b.max ? ' - ' + fmtN(toHome(b.max, b.cur), 0) : ''}`]), ['', '', '', 'Subtotal', `${fmtN(br.min, 0)} - ${fmtN(br.max, 0)}`]);
+  if (pick.has('places')) table('Places', ['Place', 'Status', 'Date', 'Rating', 'Notes'], S.places.map(p => [p.name + (p.area ? ', ' + p.area : ''), p.status === 'visited' ? 'Visited' : 'To visit', p.date ? fmtDate(p.date) : '', p.rating || '', p.notes || '']));
+  if (pick.has('food')) table('Food', ['Date', 'Dish', 'Where', 'Review', 'Price'], [...S.food].sort((a, b) => (a.date || '').localeCompare(b.date || '')).map(f => [f.date ? fmtDate(f.date) : '', f.dish, f.where || '', f.review || '', f.price ? money(f.price, f.cur) : '']), ['', '', '', 'Subtotal', money(sp.food, H$)]);
+  if (pick.has('requests')) table('Requests', ['Item', 'Qty', 'For', 'Status', 'Price'], S.requests.map(r => [r.item, r.qty || '', r.forWhom || '', r.bought ? 'Bought' : 'Pending', num(r.price) ? money(r.price, r.cur) : '']), ['', '', '', 'Bought subtotal', money(sp.req, H$)]);
+  if (pick.has('checklists')) S.lists.forEach(l => { const tot = l.items.reduce((a, i) => a + (i.price ? toHome(i.price, i.cur) : 0), 0); table(`Checklist: ${l.name}`, l.priced ? ['Item', 'Done', 'Price'] : ['Item', 'Done'], l.items.map(i => l.priced ? [i.text, i.done ? 'Yes' : '', i.price ? money(i.price, i.cur) : ''] : [i.text, i.done ? 'Yes' : '']), l.priced ? ['', 'Subtotal (not in trip totals)', money(tot, H$)] : null); });
+  if (pick.has('contacts')) table('Important notes', ['Name', 'Role', 'Phone', 'Details'], S.contacts.map(c => [c.name, c.role || '', c.phone || '', c.details || '']));
+  if (pick.has('notes')) table('Notes', ['Title', 'Note'], S.notes.map(n => [n.title, n.body]));
+  const pages = pdf.internal.getNumberOfPages();
+  for (let i = 1; i <= pages; i++) { pdf.setPage(i); pdf.setFontSize(8); pdf.setTextColor(120); pdf.text(`${pdfSafe(T.name)}  |  page ${i} of ${pages}`, 40, H - 20); }
+  pdf.save(`${slug(T.name)}-report.pdf`);
+  addLog('Downloaded a PDF report'); schedulePush();
+}
+
+/* ============================ ACTIONS ============================ */
+const dayOf = id => S.days.find(d => d.id === id);
+const findStep = sid => { for (const d of S.days) { const s = d.steps.find(x => x.id === sid); if (s) return { d, s }; } return {}; };
+const findAct = eid => { for (const [dayId, a] of Object.entries(S.activity)) { const e = a.entries.find(x => x.id === eid); if (e) return { dayId, a, e }; } return {}; };
+const curSel = (v) => ({ name: 'cur', label: 'Currency', type: 'select', options: curOptions(), col: 'col-5', value: v });
+async function delFrom(arr, id, label, what) { const it = byId(arr, id); if (!it) return; if (!await confirmBox('Delete?', `Delete <b>${esc(label(it))}</b>? This can't be undone.`)) return; arr.splice(arr.indexOf(it), 1); commit(what(it)); }
+
+function expenseForm(e) {
+  openForm({
+    title: e ? 'Edit expense' : 'Add expense', values: e || { date: isoLocal(), cur: T.destCur, category: 'Food', paidBy: myName() }, fields: [
+      { name: 'item', label: 'What did you pay for?', required: true, ph: 'e.g. Shared jeep to Gangtok' },
+      { name: 'amount', label: 'Amount', type: 'number', required: true, col: 'col-7' }, curSel(),
+      { name: 'category', label: 'Category', type: 'select', options: CATS, col: 'col-6' }, { name: 'date', label: 'Date', type: 'date', col: 'col-6' },
+      { name: 'paidBy', label: 'Paid by' }, { name: 'note', label: 'Note', type: 'textarea', rows: 2 }],
+    onSubmit: v => { if (e) { Object.assign(e, v); commit(`Edited expense "${v.item}"`); } else { S.expenses.push({ id: nid(), created: Date.now(), ...v }); commit(`Added expense "${v.item}" (${money(v.amount, v.cur)})`); } }
+  });
+}
+function activityForm(e, dayId) {
+  openForm({
+    title: e ? 'Edit activity' : `Log activity, ${dayLabel(dayOf(dayId))}`, values: e || { tz: 'dest' }, fields: [
+      { name: 'start', label: 'Start time', type: 'time12' }, { name: 'end', label: 'End time', type: 'time12' },
+      { name: 'tz', label: 'Time shown in', type: 'select', options: [['dest', T.destTz], ['home', T.homeTz]], col: 'col-6' }, { name: 'place', label: 'Where', col: 'col-6' },
+      { name: 'text', label: 'What did you do?', type: 'textarea', required: true }],
+    onSubmit: v => {
+      if (v.start && v.end && v.end < v.start && !confirm('End time is before start time. Save anyway?')) return 'Check the times.';
+      if (e) { Object.assign(e, v); commit(`Edited an activity on ${dayLabel(dayOf(dayId))}`); }
+      else { S.activity[dayId] = S.activity[dayId] || { title: '', entries: [] }; S.activity[dayId].entries.push({ id: nid(), by: myName(), ...v }); commit(`Logged activity on ${dayLabel(dayOf(dayId))}`); }
+    }
+  });
+}
+function placeForm(p) {
+  openForm({
+    title: p ? 'Edit place' : 'Add place', values: p || { status: 'planned' }, fields: [
+      { name: 'name', label: 'Place', required: true }, { name: 'area', label: 'Area or city' },
+      { name: 'status', label: 'Status', type: 'select', options: [['planned', 'To visit'], ['visited', 'Visited']], col: 'col-6' }, { name: 'date', label: 'Date visited', type: 'date', col: 'col-6' },
+      { name: 'rating', label: 'How was it?', type: 'select', options: [['', 'No rating'], ...RATINGS] }, { name: 'link', label: 'Map or website link', type: 'url', ph: 'Leave empty to search Google Maps' },
+      { name: 'notes', label: 'Notes', type: 'textarea', rows: 2 }],
+    onSubmit: v => { if (v.status === 'visited' && !v.date) v.date = isoLocal(); if (p) { Object.assign(p, v); commit(`Edited place "${v.name}"`); } else { S.places.push({ id: nid(), ...v }); commit(`Added place "${v.name}"`); } }
+  });
+}
+function foodForm(f) {
+  openForm({
+    title: f ? 'Edit food' : 'Log food', values: f || { date: isoLocal(), cur: T.destCur, review: 'Good' }, fields: [
+      { name: 'dish', label: 'Dish', required: true }, { name: 'where', label: 'Where you ate' },
+      { name: 'price', label: 'Price', type: 'number', col: 'col-7' }, curSel(),
+      { name: 'review', label: 'Review', type: 'select', options: REVIEWS, col: 'col-6' }, { name: 'date', label: 'Date', type: 'date', col: 'col-6' },
+      { name: 'notes', label: 'Notes', type: 'textarea', rows: 2 }],
+    onSubmit: v => { if (f) { Object.assign(f, v); commit(`Edited food "${v.dish}"`); } else { S.food.push({ id: nid(), created: Date.now(), ...v }); commit(`Logged food "${v.dish}"`); } }
+  });
+}
+function contactForm(c) {
+  openForm({
+    title: c ? 'Edit contact' : 'Add contact', values: c || {}, fields: [
+      { name: 'name', label: 'Name', required: true }, { name: 'role', label: 'Who they are', ph: 'Travel agent, hotel, driver…' },
+      { name: 'phone', label: 'Phone', type: 'tel', ph: '+91 98xxxxxxx', col: 'col-6' }, { name: 'whatsapp', label: 'WhatsApp number', type: 'tel', col: 'col-6', help: 'Leave empty to use the phone number.' },
+      { name: 'details', label: 'Details', type: 'textarea', rows: 6, ph: 'Address, booking reference, what they handle, payment terms…' }],
+    onSubmit: v => { if (c) { Object.assign(c, v); commit(`Edited contact "${v.name}"`); } else { S.contacts.push({ id: nid(), ...v }); commit(`Added contact "${v.name}"`); } }
+  });
+}
+function noteForm(n) {
+  openForm({
+    title: n ? 'Edit note' : 'Add note', values: n || {}, fields: [{ name: 'title', label: 'Title', required: true }, { name: 'body', label: 'Note', type: 'textarea', rows: 9 }],
+    onSubmit: v => { const upd = { ...v, updated: Date.now(), by: myName() }; if (n) { Object.assign(n, upd); commit(`Edited note "${v.title}"`); } else { S.notes.push({ id: nid(), ...upd }); commit(`Added note "${v.title}"`); } }
+  });
+}
+function requestForm(r, priceOnly) {
+  const priceFields = [{ name: 'price', label: 'Price', type: 'number', col: 'col-7', required: !!priceOnly }, curSel()];
+  openForm({
+    title: priceOnly ? `Price for ${r.item}` : r ? 'Edit request' : 'Add request', values: r || { cur: T.destCur }, fields: priceOnly ? priceFields : [
+      { name: 'item', label: 'Item', required: true }, { name: 'qty', label: 'Quantity', col: 'col-5' }, { name: 'forWhom', label: 'For', col: 'col-7' },
+      ...priceFields, { name: 'note', label: 'Note', type: 'textarea', rows: 2, ph: 'Size, colour, brand, max price…' }],
+    onSubmit: v => {
+      if (r) { Object.assign(r, v); if (!num(r.price)) r.bought = false; commit(priceOnly ? `Priced "${r.item}" at ${money(v.price, v.cur)}` : `Edited request "${r.item}"`); }
+      else { S.requests.push({ id: nid(), bought: false, ...v }); commit(`Added request "${v.item}"`); }
+    }
+  });
+}
+
+const ACT = {
+  'signout': async () => { flush(); closeTour(); if (unsubTours) unsubTours(); unsubTours = null; await signOut(auth); location.hash = ''; },
+  'new-tour': () => newTourForm(),
+  'open-tour': id => { location.hash = `#/tour/${id}`; },
+  'go-home': () => { location.hash = '#/'; },
+  'tab': (_, el) => showTab(el.dataset.tabLink),
+  'dup-tour': id => { const t = TOURS.find(x => x.id === id); if (t) newTourForm({ ...t, name: `${t.name} (copy)`, template: id }); },
+  'del-tour': async id => {
+    const t = TOURS.find(x => x.id === id) || (T?.id === id ? T : null); if (!t) return;
+    if (!await confirmBox('Delete tour?', `Delete <b>${esc(t.name)}</b> for everyone it is shared with? All its data goes too. Export a backup first if you might want it later.`, 'Delete tour')) return;
+    if (T?.id === id) { clearTimeout(pushTimer); pushTimer = null; location.hash = '#/'; }
+    deleteDoc(doc(db, 'tours', id, 'data', 'state')).catch(e => console.error(e));
+    deleteDoc(doc(db, 'tours', id)).then(() => toast('Tour deleted')).catch(e => toast('Could not delete (' + (e.code || e.message) + ')'));
+  },
+  'leave-tour': async id => {
+    const t = TOURS.find(x => x.id === id); if (!t) return;
+    if (!await confirmBox('Leave tour?', `You will lose access to <b>${esc(t.name)}</b> until the owner adds you again.`, 'Leave')) return;
+    if (T?.id === id) location.hash = '#/';
+    updateDoc(doc(db, 'tours', id), { memberEmails: arrayRemove(myEmail()) }).catch(e => toast('Could not leave (' + (e.code || e.message) + ')'));
+  },
+  'goto-day': id => { localStorage.setItem('tp:day:' + T.id, id); showTab('plan'); },
+  'pick-day': id => { localStorage.setItem('tp:day:' + T.id, id); renderActive(); },
+
+  // day plan
+  'add-day': () => {
+    const last = S.days[S.days.length - 1];
+    openForm({
+      title: 'Add day', values: { date: last?.date ? addDaysISO(last.date, 1) : '' }, fields: [{ name: 'title', label: 'Day title', ph: 'e.g. Old town walk' }, { name: 'date', label: 'Date', type: 'date' }],
+      onSubmit: v => { const d = { id: nid(), steps: [], note: '', ...v }; S.days.push(d); S.days.sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999')); localStorage.setItem('tp:day:' + T.id, d.id); commit(`Added ${dayLabel(d)}`); }
+    });
+  },
+  'edit-day': id => { const d = dayOf(id); openForm({ title: 'Edit day', values: d, fields: [{ name: 'title', label: 'Day title' }, { name: 'date', label: 'Date', type: 'date' }], onSubmit: v => { Object.assign(d, v); S.days.sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999')); commit(`Edited ${dayLabel(d)}`); } }); },
+  'del-day': async id => { const d = dayOf(id); if (!await confirmBox('Delete day?', `Delete <b>${esc(dayLabel(d))}</b> with its ${d.steps.length} stops, notes and logged activity?`)) return; const lbl = dayLabel(d); S.days.splice(S.days.indexOf(d), 1); delete S.activity[id]; commit(`Deleted ${lbl}`); },
+  'add-step': id => { const d = dayOf(id); openForm({ title: `Add stop, ${dayLabel(d)}`, fields: [{ name: 'time', label: 'Time', ph: '~9:00 AM, Morning, Route…' }, { name: 'text', label: 'Plan', type: 'textarea', required: true }], onSubmit: v => { d.steps.push({ id: nid(), ...v }); commit(`Added a stop to ${dayLabel(d)}`); } }); },
+  'edit-step': id => { const { d, s } = findStep(id); openForm({ title: 'Edit stop', values: s, fields: [{ name: 'time', label: 'Time' }, { name: 'text', label: 'Plan', type: 'textarea', required: true }], onSubmit: v => { Object.assign(s, v); commit(`Edited a stop on ${dayLabel(d)}`); } }); },
+  'del-step': async id => { const { d, s } = findStep(id); if (!await confirmBox('Delete stop?', esc(s.text))) return; d.steps.splice(d.steps.indexOf(s), 1); commit(`Deleted a stop from ${dayLabel(d)}`); },
+  'step-up': id => { const { d, s } = findStep(id); const i = d.steps.indexOf(s); if (i > 0) { [d.steps[i - 1], d.steps[i]] = [d.steps[i], d.steps[i - 1]]; commit(`Reordered ${dayLabel(d)}`); } },
+
+  // activity
+  'add-activity': () => { if (!S.days.length) { toast('Add a day first'); return; } activityForm(null, curDayId()); },
+  'edit-act': id => { const { dayId, e } = findAct(id); activityForm(e, dayId); },
+  'del-act': async id => { const { dayId, a, e } = findAct(id); if (!await confirmBox('Delete entry?', esc(e.text))) return; a.entries.splice(a.entries.indexOf(e), 1); commit(`Deleted an activity on ${dayLabel(dayOf(dayId))}`); },
+  'edit-act-title': id => { const a = S.activity[id] || { title: '', entries: [] }; openForm({ title: 'How did the day go?', values: a, fields: [{ name: 'title', label: 'Your own title for this day', ph: 'e.g. Rain all day, still worth it' }], onSubmit: v => { a.title = v.title; S.activity[id] = a; commit(`Renamed ${dayLabel(dayOf(id))} in My activity`); } }); },
+
+  // expenses & budget
+  'add-expense': () => expenseForm(),
+  'edit-exp': id => expenseForm(byId(S.expenses, id)),
+  'del-exp': id => delFrom(S.expenses, id, e => e.item, e => `Deleted expense "${e.item}"`),
+  'add-budget': (id) => {
+    const b = id ? byId(S.budget, id) : null;
+    openForm({
+      title: b ? 'Edit budget item' : 'Add budget item', values: b || { cur: T.destCur, category: 'Transport' }, fields: [
+        { name: 'item', label: 'Item', required: true, ph: 'e.g. Hotel, 3 nights' }, { name: 'category', label: 'Category', type: 'select', options: CATS },
+        { name: 'min', label: 'Cost (or lowest)', type: 'number', required: true, col: 'col-6' }, { name: 'max', label: 'Highest', type: 'number', col: 'col-6' }, curSel(), { name: 'note', label: 'Note', col: 'col-7' }],
+      onSubmit: v => { if (v.max !== '' && v.max < v.min) return 'Highest is below the lowest cost.'; if (b) { Object.assign(b, v); commit(`Edited budget item "${v.item}"`); } else { S.budget.push({ id: nid(), ...v }); commit(`Added budget item "${v.item}"`); } }
+    });
+  },
+  'edit-bud': id => ACT['add-budget'](id),
+  'del-bud': id => delFrom(S.budget, id, b => b.item, b => `Deleted budget item "${b.item}"`),
+
+  // places / food / requests
+  'add-place': () => placeForm(), 'edit-place': id => placeForm(byId(S.places, id)),
+  'del-place': id => delFrom(S.places, id, p => p.name, p => `Deleted place "${p.name}"`),
+  'place-filter': id => { placeFilter = id; renderActive(); },
+  'add-food': () => foodForm(), 'edit-food': id => foodForm(byId(S.food, id)),
+  'del-food': id => delFrom(S.food, id, f => f.dish, f => `Deleted food "${f.dish}"`),
+  'add-req': () => requestForm(), 'edit-req': id => requestForm(byId(S.requests, id)), 'price-req': id => requestForm(byId(S.requests, id), true),
+  'del-req': id => delFrom(S.requests, id, r => r.item, r => `Deleted request "${r.item}"`),
+
+  // checklists
+  'add-list': () => openForm({ title: 'New list', fields: [{ name: 'name', label: 'List name', required: true }, { name: 'priced', label: 'Track prices on this list (kept out of trip totals)', type: 'check' }], onSubmit: v => { S.lists.push({ id: nid(), items: [], ...v }); commit(`Created list "${v.name}"`); } }),
+  'edit-list': id => { const l = byId(S.lists, id); openForm({ title: 'Edit list', values: l, fields: [{ name: 'name', label: 'List name', required: true }, { name: 'priced', label: 'Track prices on this list (kept out of trip totals)', type: 'check' }], onSubmit: v => { Object.assign(l, v); commit(`Edited list "${v.name}"`); } }); },
+  'del-list': id => delFrom(S.lists, id, l => `${l.name} (${l.items.length} items)`, l => `Deleted list "${l.name}"`),
+  'clear-done': async id => { const l = byId(S.lists, id), n = l.items.filter(i => i.done).length; if (!await confirmBox('Remove ticked items?', `Remove ${n} ticked item${n > 1 ? 's' : ''} from <b>${esc(l.name)}</b>?`, 'Remove')) return; l.items = l.items.filter(i => !i.done); commit(`Removed ${n} ticked items from "${l.name}"`); },
+  'edit-item': (id, el) => {
+    const l = byId(S.lists, el.dataset.list), i = byId(l.items, id);
+    openForm({ title: 'Edit item', values: { ...i, cur: i.cur || T.homeCur }, fields: [{ name: 'text', label: 'Item', required: true }, ...(l.priced ? [{ name: 'price', label: 'Price', type: 'number', col: 'col-7' }, curSel()] : [])], onSubmit: v => { Object.assign(i, v); commit(`Edited "${v.text}" in "${l.name}"`); } });
+  },
+  'del-item': (id, el) => { const l = byId(S.lists, el.dataset.list), i = byId(l.items, id); l.items.splice(l.items.indexOf(i), 1); commit(`Removed "${i.text}" from "${l.name}"`); },
+
+  // contacts & notes
+  'add-contact': () => contactForm(), 'edit-contact': id => contactForm(byId(S.contacts, id)),
+  'del-contact': id => delFrom(S.contacts, id, c => c.name, c => `Deleted contact "${c.name}"`),
+  'contact-details': id => { const c = byId(S.contacts, id); infoBox(c.name, `${c.role ? `<p class="dim">${esc(c.role)}</p>` : ''}${c.phone ? `<p><i class="bi bi-telephone me-1"></i>${esc(c.phone)}</p>` : ''}<div style="white-space:pre-wrap">${esc(c.details)}</div>`, `<button class="btn btn-ghost" data-action="copy" data-copy="${esc(`${c.name}\n${c.phone || ''}\n${c.details || ''}`)}">Copy all</button>`); },
+  'copy': (_, el) => copyText(el.dataset.copy),
+  'add-note': () => noteForm(), 'edit-note': id => noteForm(byId(S.notes, id)),
+  'view-note': id => { const n = byId(S.notes, id); infoBox(n.title, `<div style="white-space:pre-wrap">${esc(n.body)}</div>`, `<button class="btn btn-ghost" data-action="copy" data-copy="${esc(n.body)}">Copy</button>`); },
+  'del-note': id => delFrom(S.notes, id, n => n.title, n => `Deleted note "${n.title}"`),
+
+  // currency
+  'cv-swap': () => { [CV.from, CV.to] = [CV.to, CV.from]; renderActive(); },
+  'cv-refresh': async () => { try { await fetchRates(true); toast('Rates updated'); renderActive(); } catch { toast('Could not reach the rate service'); } },
+  'use-live-rate': async () => {
+    try { await fetchRates(); const r = liveRate(T.destCur, T.homeCur); if (!r) { toast(`No live rate for ${T.destCur}`); return; }
+      await updateDoc(tourRef, { rate: round(r) }); addLog(`Set the tour rate to 1 ${T.destCur} = ${round(r)} ${T.homeCur}`); schedulePush(); toast('Tour rate updated'); }
+    catch (e) { toast('Could not update rate (' + (e.code || e.message) + ')'); }
+  },
+  'edit-rate': () => openForm({ title: 'Tour rate', values: { rate: T.rate }, fields: [{ name: 'rate', label: `1 ${T.destCur} in ${T.homeCur}`, type: 'number', required: true }], onSubmit: async v => { if (v.rate <= 0) return 'Enter a rate above zero.'; updateDoc(tourRef, { rate: v.rate }).catch(e => toast(e.code || e.message)); addLog(`Set the tour rate to ${v.rate}`); schedulePush(); } }),
+
+  // report & log
+  'gen-pdf': () => { try { genPDF(); } catch (e) { console.error(e); toast('PDF failed: ' + e.message); } },
+  'report-all': id => $$('[data-report]').forEach(c => { c.checked = id === '1'; }),
+  'clear-log': async () => { if (!await confirmBox('Clear log?', 'Remove all change history for this tour?', 'Clear')) return; S.log = []; commit('Cleared the change log'); },
+
+  // settings
+  'edit-meta': () => openForm({
+    title: 'Tour details', values: T, fields: tourFields(false),
+    onSubmit: async v => {
+      const m = cleanMeta(v); if (typeof m === 'string') return m;
+      if (!m.rate) await fillRate(m);
+      updateDoc(tourRef, { ...m, updatedAt: serverTimestamp() }).catch(e => toast('Could not save details (' + (e.code || e.message) + ')'));
+      addLog('Edited tour details'); schedulePush();
+    }
+  }),
+  'sync-days': () => {
+    if (!T.startDate) { toast('Set a start date first'); return; }
+    const have = new Set(S.days.map(d => d.date)); let added = 0;
+    buildDays(T.startDate, T.endDate).forEach(d => { if (!have.has(d.date)) { S.days.push(d); added++; } });
+    S.days.sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999'));
+    if (added) { commit(`Added ${added} day${added > 1 ? 's' : ''} from the tour dates`); toast(`Added ${added} day${added > 1 ? 's' : ''}`); } else toast('Every date already has a day');
+  },
+  'remove-member': async (_, el) => {
+    const e = el.dataset.email; if (!await confirmBox('Remove person?', `${esc(e)} will lose access to this tour.`, 'Remove')) return;
+    updateDoc(tourRef, { memberEmails: arrayRemove(e) }).then(() => { addLog(`Removed ${e} from the tour`); schedulePush(); }).catch(err => toast('Could not remove (' + (err.code || err.message) + ')'));
+  },
+  'export': () => {
+    const { id, createdAt, updatedAt, ...meta } = T;
+    const blob = new Blob([JSON.stringify({ app: 'tour-planner', version: 1, exportedAt: new Date().toISOString(), meta, state: S }, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${slug(T.name)}-backup-${isoLocal()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    addLog('Exported a backup'); schedulePush();
+  },
+  'import': () => $('#importFile').click(),
+  'reset-trip': async () => { if (!await confirmBox('Clear trip records?', 'This removes activity, expenses, food, requests and visit marks, and unticks checklists. The day plan, budget, contacts and notes stay.', 'Clear records')) return; const log = S.log; S = templateFrom(S, T); S.log = log; commit('Cleared trip records, kept the plan'); },
+  'reset-all': async () => { if (!await confirmBox('Reset everything?', 'Every entry in this tour will be erased on all devices, including the day plan. Tour details and sharing stay.', 'Reset everything')) return; S = freshState(T); commit('Reset everything'); },
+};
+
+/* ---------- delegated events ---------- */
+document.addEventListener('click', e => {
+  const clock = e.target.closest('[data-clock]'); if (clock) { try { clock.showPicker(); } catch { } return; }
+  const el = e.target.closest('[data-action]'); if (!el) return;
+  const a = el.dataset.action; if (a === 'noop') return;
+  if (el.tagName === 'A') e.preventDefault();
+  if (el.classList.contains('tour-tag') && e.target.closest('.dropdown')) return;
+  ACT[a]?.(el.dataset.id, el, e);
+});
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('.tour-tag')) ACT['open-tour'](e.target.dataset.id); });
+document.addEventListener('change', e => {
+  const clock = e.target.closest('[data-clock]');
+  if (clock) {
+    const name = clock.dataset.clock, v = clock.value; if (!v) return; const [H, M] = v.split(':').map(Number); const b = $('#formModalBody');
+    b.querySelector(`[name="${name}_h"]`).value = String(H % 12 || 12); b.querySelector(`[name="${name}_m"]`).value = String(M).padStart(2, '0'); b.querySelector(`[name="${name}_ap"]`).value = H >= 12 ? 'PM' : 'AM';
+    return;
+  }
+  const el = e.target.closest('[data-change]'); if (!el) return;
+  const k = el.dataset.change;
+  if (k === 'exp-filter') { expFilter = el.value; renderActive(); }
+  else if (k === 'food-filter') { foodFilter = el.value; renderActive(); }
+  else if (k === 'log-filter') { logQ = el.value; renderActive(); }
+  else if (k === 'cv') { CV.from = $('#cvFrom').value; CV.to = $('#cvTo').value; updateCV(); }
+  else if (k === 'toggle-visit') { const p = byId(S.places, el.dataset.id); p.status = el.checked ? 'visited' : 'planned'; if (el.checked && !p.date) p.date = isoLocal(); commit(`${el.checked ? 'Visited' : 'Unmarked'} "${p.name}"`); }
+  else if (k === 'toggle-req') { const r = byId(S.requests, el.dataset.id); if (!num(r.price)) { el.checked = false; toast('Add a price first'); return; } r.bought = el.checked; commit(`${el.checked ? 'Bought' : 'Unmarked'} "${r.item}"`); }
+  else if (k === 'toggle-item') { const l = byId(S.lists, el.dataset.list), i = byId(l.items, el.dataset.id); i.done = el.checked; commit(`${el.checked ? 'Ticked' : 'Unticked'} "${i.text}" in "${l.name}"`); }
+});
+const noteLogTimers = {};
+document.addEventListener('input', e => {
+  const el = e.target.closest('[data-input]'); if (!el) return;
+  const k = el.dataset.input;
+  if (k === 'day-note') {
+    const d = dayOf(el.dataset.id); if (!d) return; d.note = el.value; schedulePush();
+    clearTimeout(noteLogTimers[d.id]); noteLogTimers[d.id] = setTimeout(() => { addLog(`Edited notes for ${dayLabel(d)}`); schedulePush(); }, 1500);
+  } else if (k === 'cv') { CV.amt = el.value; updateCV(); }
+  else if (k === 'note-search') { noteQ = el.value; $('#notesGrid').innerHTML = notesGridHTML(); }
+});
+document.addEventListener('submit', e => {
+  const f = e.target.closest('[data-submit]'); if (!f) return; e.preventDefault();
+  const k = f.dataset.submit;
+  if (k === 'add-item') {
+    const l = byId(S.lists, f.dataset.list), text = f.text.value.trim(); if (!text) return;
+    l.items.push({ id: nid(), text, done: false, price: f.price ? (f.price.value.trim() === '' ? '' : num(f.price.value)) : '', cur: T.homeCur });
+    commit(`Added "${text}" to "${l.name}"`);
+    requestAnimationFrame(() => $(`form[data-list="${l.id}"] input[name=text]`)?.focus());
+  } else if (k === 'add-member') {
+    const em = f.email.value.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { toast('Enter a valid email'); return; }
+    if (T.memberEmails.includes(em)) { toast('Already shared with ' + em); return; }
+    updateDoc(tourRef, { memberEmails: arrayUnion(em) }).then(() => { addLog(`Shared the tour with ${em}`); schedulePush(); toast('Shared with ' + em); }).catch(err => toast('Could not share (' + (err.code || err.message) + ')'));
+  } else if (k === 'set-name') {
+    const name = f.elements.namedItem('name').value.trim();
+    updateProfile(auth.currentUser, { displayName: name }).then(() => { toast('Name saved'); renderActive(); }).catch(err => toast(err.message));
+  }
+});
+$('#importFile').addEventListener('change', async e => {
+  const file = e.target.files[0]; e.target.value = ''; if (!file) return;
+  try {
+    const j = JSON.parse(await file.text());
+    if (!j.state || !Array.isArray(j.state.days)) throw new Error('This file is not a Tour Planner backup.');
+    if (!await confirmBox('Import backup?', `Replace everything in <b>${esc(T.name)}</b> with the backup from ${esc(j.exportedAt ? new Date(j.exportedAt).toLocaleString() : 'the file')}?`, 'Replace', false)) return;
+    const log = S.log; S = normalize(j.state); S.log = [...(S.log || []), ...log].slice(0, 300); commit('Imported a backup');
+  } catch (err) { toast(err.message); }
+});
+
+/* ============================ AUTH ============================ */
+let authMode = 'signin';
+function setAuthMode(m) {
+  authMode = m;
+  const t = {
+    signin: ['Sign in', 'Your tours sync to every device you sign in on.', 'Sign in', 'Create an account'],
+    signup: ['Create account', 'One account keeps all your tours together.', 'Create account', 'I already have an account'],
+    reset: ['Reset password', "We'll email you a link to set a new password.", 'Send reset link', 'Back to sign in']
+  }[m];
+  $('#authTitle').textContent = t[0]; $('#authSub').textContent = t[1]; $('#authBtn').textContent = t[2]; $('#authSwitch').textContent = t[3];
+  $('#nameWrap').classList.toggle('hidden', m !== 'signup'); $('#passWrap').classList.toggle('hidden', m === 'reset');
+  $('#keepWrap').classList.toggle('hidden', m === 'reset'); $('#authForgot').classList.toggle('hidden', m !== 'signin');
+  $('#authPass').setAttribute('autocomplete', m === 'signup' ? 'new-password' : 'current-password'); $('#authErr').textContent = '';
+}
+function authMsg(e) {
+  return ({
+    'auth/invalid-credential': 'Email or password is wrong.', 'auth/wrong-password': 'Email or password is wrong.', 'auth/user-not-found': 'No account with that email. Create one instead.',
+    'auth/email-already-in-use': 'That email already has an account. Sign in instead.', 'auth/weak-password': 'Use at least 6 characters for the password.',
+    'auth/invalid-email': 'That email address is not valid.', 'auth/too-many-requests': 'Too many attempts. Wait a few minutes and try again.',
+    'auth/network-request-failed': 'No connection. Check your internet and try again.', 'auth/operation-not-allowed': 'Email sign-in is not enabled in Firebase (see setup step 2).'
+  })[e.code] || e.message;
+}
+$('#authSwitch').addEventListener('click', e => { e.preventDefault(); setAuthMode(authMode === 'signin' ? 'signup' : 'signin'); });
+$('#authForgot').addEventListener('click', e => { e.preventDefault(); setAuthMode('reset'); });
+$('#authForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = $('#authEmail').value.trim(), pass = $('#authPass').value, btn = $('#authBtn');
+  $('#authErr').textContent = '';
+  if (!email) { $('#authErr').textContent = 'Enter your email.'; return; }
+  if (authMode !== 'reset' && pass.length < 6) { $('#authErr').textContent = 'Password needs at least 6 characters.'; return; }
+  btn.disabled = true;
+  try {
+    if (authMode === 'reset') { await sendPasswordResetEmail(auth, email); toast('Reset link sent. Check your inbox.'); setAuthMode('signin'); return; }
+    await setPersistence(auth, $('#authKeep').checked ? browserLocalPersistence : browserSessionPersistence);
+    if (authMode === 'signup') {
+      const c = await createUserWithEmailAndPassword(auth, email, pass);
+      const name = $('#authName').value.trim(); if (name) { await updateProfile(c.user, { displayName: name }); renderHome(); }
+    } else await signInWithEmailAndPassword(auth, email, pass);
+  } catch (err) { $('#authErr').textContent = authMsg(err); }
+  finally { btn.disabled = false; }
+});
+
+/* ============================ BOOT ============================ */
+buildNav();
+if (!CONFIG_OK) {
+  $('#bootView').innerHTML = `<div class="auth-card" style="max-width:520px"><div class="brand"><span class="brand-mark"><i class="bi bi-compass"></i></span>Tour Planner</div>
+    <h1 style="font-size:1.6rem;margin-top:20px">Connect Firebase to start</h1>
+    <p class="dim">Open <b>index.html</b>, find <code>firebaseConfig</code> near the top of the script, and paste the config from your Firebase project. The setup guide walks through it step by step.</p></div>`;
+} else {
+  setAuthMode('signin');
+  onAuthStateChanged(auth, u => {
+    CU = u;
+    if (!u) { closeTour(); if (unsubTours) unsubTours(); unsubTours = null; TOURS = []; toursLoaded = false; showView('authView'); return; }
+    subscribeTours(); route();
+  });
+}
+</script>
+</body>
+</html>
